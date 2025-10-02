@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innehållstavla - Hem</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md mb-6">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-center md:justify-start space-x-1">
+                <a href="index.html" class="flex items-center gap-2 px-6 py-4 font-medium text-indigo-600 border-b-2 border-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Hem</span>
+                </a>
+                <a href="create.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Skapa inlägg</span>
+                </a>
+                <a href="view.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span>Visa inlägg</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-xl p-8 md:p-12 text-center">
+                <div class="mb-8">
+                    <svg width="64" height="64" class="mx-auto text-indigo-600 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                        Välkommen till Innehållstavlan
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8">
+                        Dela dina tankar, idéer och feedback anonymt med alla
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-indigo-50 rounded-lg p-6 hover:bg-indigo-100 transition">
+                        <svg width="40" height="40" class="mx-auto text-indigo-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2">Skapa inlägg</h3>
+                        <p class="text-gray-600 mb-4">
+                            Dela dina tankar helt anonymt. Välj en kategori och skriv ditt meddelande.
+                        </p>
+                        <a href="create.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                            Skapa nu
+                        </a>
+                    </div>
+
+                    <div class="bg-green-50 rounded-lg p-6 hover:bg-green-100 transition">
+                        <svg width="40" height="40" class="mx-auto text-green-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2">Visa inlägg</h3>
+                        <p class="text-gray-600 mb-4">
+                            Läs vad andra har delat. Filtrera, sök och utforska alla inlägg.
+                        </p>
+                        <a href="view.html" class="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                            Visa inlägg
+                        </a>
+                    </div>
+                </div>
+
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-2">Helt anonymt & säkert</h3>
+                    <p class="text-gray-600">
+                        Alla inlägg är anonyma. Vi sparar ingen personlig information om vem som skriver vad.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
