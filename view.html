@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innehållstavla - Visa inlägg</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+    <!-- Header -->
+    <div class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md mb-6">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-center md:justify-start space-x-1">
+                <a href="index.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Hem</span>
+                </a>
+                <a href="create.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Skapa inlägg</span>
+                </a>
+                <a href="view.html" class="flex items-center gap-2 px-6 py-4 font-medium text-indigo-600 border-b-2 border-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span>Visa inlägg</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Header with Admin button -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Alla inlägg</h2>
+                    <p class="text-sm text-gray-500 mt-1">Synkroniserat med Google Sheets</p>
+                </div>
+                <div class="flex gap-2">
+                    <button
+                        onclick="fetchPosts()"
+                        id="refreshButton"
+                        class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                        title="Uppdatera inlägg"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                        <span class="hidden sm:inline">Uppdatera</span>
+                    </button>
+                    <button
+                        onclick="toggleAdminLogin()"
+                        id="adminButton"
+                        class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                    >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        <span>Admin</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Login Modal -->
+        <div id="loginModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                <h2 class="text-xl font-bold mb-4">Admin-inloggning</h2>
+                <div class="space-y-4">
+                    <input
+                        type="password"
+                        id="passwordInput"
+                        placeholder="Lösenord"
+                        class="w-full p-3 border border-gray-300 rounded-lg"
+                    />
+                    <div class="flex gap-2">
+                        <button
+                            onclick="handleLogin()"
+                            class="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+                        >
+                            Logga in
+                        </button>
+                        <button
+                            onclick="toggleAdminLogin()"
+                            class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                        >
+                            Avbryt
+                        </button>
+                    </div>
+                </div>
+                <p class="text-sm text-gray-500 mt-3">Tips: Lösenord är "admin123"</p>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+        </div>
+
+        <div id="loadingMessage" class="hidden bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6">
+            Laddar...
+        </div>
+
+        <!-- Filters -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Filtrera kategori
+                    </label>
+                    <select
+                        id="filterCategory"
+                        onchange="renderPosts()"
+                        class="w-full p-2 border border-gray-300 rounded-lg"
+                    >
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Sortera
+                    </label>
+                    <select
+                        id="sortOrder"
+                        onchange="renderPosts()"
+                        class="w-full p-2 border border-gray-300 rounded-lg"
+                    >
+                        <option value="newest">Nyast först</option>
+                        <option value="oldest">Äldst först</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Sök i innehåll
+                    </label>
+                    <div class="relative">
+                        <svg width="18" height="18" class="absolute left-3 top-2.5 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="m21 21-4.35-4.35"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            id="searchTerm"
+                            oninput="renderPosts()"
+                            placeholder="Sök..."
+                            class="w-full pl-10 p-2 border border-gray-300 rounded-lg"
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 flex justify-between items-center flex-wrap gap-2">
+                <span id="postCount" class="text-sm text-gray-600">
+                    Visar 0 av 0 inlägg
+                </span>
+                <button
+                    onclick="exportToPDF()"
+                    class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Exportera PDF</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Posts List -->
+        <div id="postsList" class="space-y-4">
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+                Laddar inlägg...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec';
+        const ADMIN_PASSWORD = 'admin123';
+        
+        let allPosts = [];
+        let isAdmin = false;
+        let editingId = null;
+
+        // Fetch posts from Google Sheets
+        async function fetchPosts() {
+            try {
+                showMessage('loading');
+                const response = await fetch(SCRIPT_URL);
+                const data = await response.json();
+                allPosts = data.filter(post => post.id);
+                renderPosts();
+                hideMessage('loading');
+            } catch (err) {
+                showMessage('error', 'Kunde inte hämta inlägg. Försök igen.');
+                console.error('Error fetching posts:', err);
+            }
+        }
+
+        // Show/hide messages
+        function showMessage(type, message = '') {
+            const errorEl = document.getElementById('errorMessage');
+            const loadingEl = document.getElementById('loadingMessage');
+            
+            errorEl.classList.add('hidden');
+            loadingEl.classList.add('hidden');
+
+            if (type === 'error') {
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            } else if (type === 'loading') {
+                loadingEl.classList.remove('hidden');
+            }
+        }
+
+        function hideMessage(type) {
+            if (type === 'loading') {
+                document.getElementById('loadingMessage').classList.add('hidden');
+            } else if (type === 'error') {
+                document.getElementById('errorMessage').classList.add('hidden');
+            }
+        }
+
+        // Admin login
+        function toggleAdminLogin() {
+            const modal = document.getElementById('loginModal');
+            if (isAdmin) {
+                isAdmin = false;
+                updateAdminButton();
+                renderPosts();
+            } else {
+                modal.classList.toggle('hidden');
+            }
+        }
+
+        function handleLogin() {
+            const password = document.getElementById('passwordInput').value;
+            if (password === ADMIN_PASSWORD) {
+                isAdmin = true;
+                toggleAdminLogin();
+                updateAdminButton();
+                renderPosts();
+                document.getElementById('passwordInput').value = '';
+            } else {
+                alert('Fel lösenord');
+            }
+        }
+
+        function updateAdminButton() {
+            const btn = document.getElementById('adminButton');
+            if (isAdmin) {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    <span>Logga ut</span>
+                `;
+            } else {
+                btn.innerHTML = `
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                        <polyline points="10 17 15 12 10 7"></polyline>
+                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                    </svg>
+                    <span>Admin</span>
+                `;
+            }
+        }
+
+        // Delete post
+        async function deletePost(id) {
+            if (!confirm('Är du säker på att du vill radera detta inlägg?')) return;
+
+            try {
+                showMessage('loading');
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SCRIPT_URL;
+                form.target = 'hidden_iframe';
+                form.style.display = 'none';
+
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'delete';
+                form.appendChild(actionInput);
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    fetchPosts();
+                }, 2000);
+
+            } catch (err) {
+                showMessage('error', 'Kunde inte radera inlägg. Försök igen.');
+                console.error('Error deleting:', err);
+            }
+        }
+
+        // Edit post
+        function startEdit(id) {
+            editingId = id;
+            renderPosts();
+        }
+
+        function cancelEdit() {
+            editingId = null;
+            renderPosts();
+        }
+
+        async function saveEdit(id) {
+            const category = document.getElementById(`edit-category-${id}`).value;
+            const content = document.getElementById(`edit-content-${id}`).value;
+
+            try {
+                showMessage('loading');
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SCRIPT_URL;
+                form.target = 'hidden_iframe';
+                form.style.display = 'none';
+
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'update';
+                form.appendChild(actionInput);
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                const categoryInput = document.createElement('input');
+                categoryInput.type = 'hidden';
+                categoryInput.name = 'category';
+                categoryInput.value = category.trim();
+                form.appendChild(categoryInput);
+
+                const contentInput = document.createElement('input');
+                contentInput.type = 'hidden';
+                contentInput.name = 'content';
+                contentInput.value = content.trim();
+                form.appendChild(contentInput);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    editingId = null;
+                    fetchPosts();
+                }, 2000);
+
+            } catch (err) {
+                showMessage('error', 'Kunde inte uppdatera inlägg. Försök igen.');
+                console.error('Error updating:', err);
+            }
+        }
+
+        // Filter and render posts
+        function getFilteredPosts() {
+            const filterCategory = document.getElementById('filterCategory').value;
+            const searchTerm = document.getElementById('searchTerm').value.toLowerCase();
+            const sortOrder = document.getElementById('sortOrder').value;
+
+            let filtered = allPosts;
+
+            if (filterCategory !== 'alla') {
+                filtered = filtered.filter(p => p.category === filterCategory);
+            }
+
+            if (searchTerm) {
+                filtered = filtered.filter(p => 
+                    p.content.toLowerCase().includes(searchTerm)
+                );
+            }
+
+            return filtered.sort((a, b) => {
+                if (sortOrder === 'newest') {
+                    return new Date(b.timestamp) - new Date(a.timestamp);
+                } else {
+                    return new Date(a.timestamp) - new Date(b.timestamp);
+                }
+            });
+        }
+
+        function renderPosts() {
+            const filteredPosts = getFilteredPosts();
+            const postsList = document.getElementById('postsList');
+            const postCount = document.getElementById('postCount');
+
+            postCount.textContent = `Visar ${filteredPosts.length} av ${allPosts.length} inlägg`;
+
+            // Update category filter
+            updateCategoryFilter();
+
+            if (filteredPosts.length === 0) {
+                postsList.innerHTML = `
+                    <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+                        Inga inlägg att visa
+                    </div>
+                `;
+                return;
+            }
+
+            postsList.innerHTML = filteredPosts.map(post => {
+                if (editingId === post.id) {
+                    return `
+                        <div class="bg-white rounded-lg shadow-lg p-6">
+                            <div class="space-y-3">
+                                <input
+                                    type="text"
+                                    id="edit-category-${post.id}"
+                                    value="${post.category}"
+                                    class="w-full p-2 border border-gray-300 rounded"
+                                />
+                                <textarea
+                                    id="edit-content-${post.id}"
+                                    rows="3"
+                                    class="w-full p-2 border border-gray-300 rounded"
+                                >${post.content}</textarea>
+                                <div class="flex gap-2">
+                                    <button
+                                        onclick="saveEdit(${post.id})"
+                                        class="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="20 6 9 17 4 12"></polyline>
+                                        </svg>
+                                        <span>Spara</span>
+                                    </button>
+                                    <button
+                                        onclick="cancelEdit()"
+                                        class="flex items-center gap-1 px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                        <span>Avbryt</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                return `
+                    <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                                ${post.category}
+                            </span>
+                            ${isAdmin ? `
+                                <div class="flex gap-2">
+                                    <button
+                                        onclick="startEdit(${post.id})"
+                                        class="text-blue-600 hover:text-blue-800"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+                                        </svg>
+                                    </button>
+                                    <button
+                                        onclick="deletePost(${post.id})"
+                                        class="text-red-600 hover:text-red-800"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                            <line x1="10" y1="11" x2="10" y2="17"></line>
+                                            <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                    </button>
+                                </div>
+                            ` : ''}
+                        </div>
+                        <p class="text-gray-700 mb-2">${post.content}</p>
+                        <span class="text-xs text-gray-500">
+                            ${new Date(post.timestamp).toLocaleString('sv-SE')}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateCategoryFilter() {
+            const categories = ['alla', ...new Set(allPosts.map(p => p.category))];
+            const categoryCount = allPosts.reduce((acc, post) => {
+                acc[post.category] = (acc[post.category] || 0) + 1;
+                return acc;
+            }, {});
+
+            const filterSelect = document.getElementById('filterCategory');
+            const currentValue = filterSelect.value || 'alla';
+            
+            filterSelect.innerHTML = categories.map(cat => {
+                const count = cat !== 'alla' ? ` (${categoryCount[cat] || 0})` : '';
+                return `<option value="${cat}">${cat}${count}</option>`;
+            }).join('');
+            
+            filterSelect.value = currentValue;
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            const printWindow = window.open('', '', 'width=800,height=600');
+            const filteredPosts = getFilteredPosts();
+            
+            const htmlContent = '<html><head><title>Innehållstavla Export</title><style>body { font-family: Arial, sans-serif; padding: 20px; } h1 { color: #333; } .post { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; } .category { font-weight: bold; color: #4F46E5; } .timestamp { color: #666; font-size: 12px; } .content { margin-top: 8px; }</style></head><body><h1>Innehållstavla - Export</h1><p>Exporterad: ' + new Date().toLocaleString('sv-SE') + '</p><p>Antal inlägg: ' + filteredPosts.length + '</p><hr>' + filteredPosts.map(post => '<div class="post"><div class="category">' + post.category + '</div><div class="timestamp">' + new Date(post.timestamp).toLocaleString('sv-SE') + '</div><div class="content">' + post.content + '</div></div>').join('') + '</body></html>';
+            
+            printWindow.document.write(htmlContent);
+            printWindow.document.close();
+            setTimeout(() => {
+                printWindow.print();
+            }, 250);
+        }
+
+        // Allow Enter key in password field
+        document.getElementById('passwordInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                handleLogin();
+            }
+        });
+
+        // Initial load
+        fetchPosts();
+        
+        // Auto-refresh every 30 seconds
+        setInterval(fetchPosts, 30000);
+    </script>
+</body>
+</html>
