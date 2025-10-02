@@ -73,7 +73,6 @@
                         <span class="hidden sm:inline">Uppdatera</span>
                     </button>
                     <button
-                        onclick="toggleAdminLogin()"
                         id="adminButton"
                         class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                     >
@@ -107,7 +106,7 @@
                             Logga in
                         </button>
                         <button
-                            onclick="toggleAdminLogin()"
+                            onclick="closeLoginModal()"
                             class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
                         >
                             Avbryt
@@ -116,6 +115,64 @@
                 </div>
                 <p class="text-sm text-gray-500 mt-3">Tips: Lösenord är "admin123"</p>
             </div>
+        </div>
+
+        <!-- Admin Settings Panel -->
+        <div id="adminPanel" class="hidden mb-6">
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-xl font-bold mb-4">Admin-inställningar</h3>
+                
+                <div class="space-y-4">
+                    <div class="border-b pb-4">
+                        <h4 class="font-semibold mb-3">Kategori-inställningar</h4>
+                        
+                        <div class="flex items-center gap-3 mb-3">
+                            <input 
+                                type="checkbox" 
+                                id="allowCustomCategories" 
+                                class="w-5 h-5 text-indigo-600"
+                            />
+                            <label for="allowCustomCategories" class="text-gray-700">
+                                Tillåt användare att skapa egna kategorier
+                            </label>
+                        </div>
+                        
+                        <div id="predefinedCategoriesSection">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                Fördefinierade kategorier (separera med kommatecken)
+                            </label>
+                            <input
+                                type="text"
+                                id="allowedCategories"
+                                placeholder="Feedback, Fråga, Idé, Förslag"
+                                class="w-full p-3 border border-gray-300 rounded-lg"
+                            />
+                            <p class="text-sm text-gray-500 mt-1">
+                                Dessa kategorier kommer att visas som alternativ för användare
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button
+                            onclick="saveAdminSettings()"
+                            class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+                        >
+                            Spara inställningar
+                        </button>
+                        <button
+                            onclick="cancelAdminSettings()"
+                            class="bg-gray-300 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-400 transition"
+                        >
+                            Avbryt
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="settingsSuccess" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+            ✓ Inställningar sparade!
         </div>
 
         <!-- Messages -->
@@ -248,23 +305,20 @@
             }
         }
 
-        // Admin login
-        function toggleAdminLogin() {
-            const modal = document.getElementById('loginModal');
-            if (isAdmin) {
-                isAdmin = false;
-                updateAdminButton();
-                renderPosts();
-            } else {
-                modal.classList.toggle('hidden');
-            }
+        // Admin login functions
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
         }
 
         function handleLogin() {
             const password = document.getElementById('passwordInput').value;
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
-                toggleAdminLogin();
+                closeLoginModal();
                 updateAdminButton();
                 renderPosts();
                 document.getElementById('passwordInput').value = '';
@@ -273,8 +327,16 @@
             }
         }
 
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminButton();
+            renderPosts();
+        }
+
         function updateAdminButton() {
             const btn = document.getElementById('adminButton');
+            const adminPanel = document.getElementById('adminPanel');
+            
             if (isAdmin) {
                 btn.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -284,6 +346,9 @@
                     </svg>
                     <span>Logga ut</span>
                 `;
+                btn.onclick = logoutAdmin;
+                adminPanel.classList.remove('hidden');
+                loadAdminSettings();
             } else {
                 btn.innerHTML = `
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -293,7 +358,90 @@
                     </svg>
                     <span>Admin</span>
                 `;
+                btn.onclick = openLoginModal;
+                adminPanel.classList.add('hidden');
             }
+        }
+
+        // Load admin settings
+        async function loadAdminSettings() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getSettings');
+                const settings = await response.json();
+                
+                document.getElementById('allowCustomCategories').checked = 
+                    settings.allowCustomCategories === 'true' || settings.allowCustomCategories === true;
+                document.getElementById('allowedCategories').value = 
+                    settings.allowedCategories || '';
+                    
+                updateCategoryInputVisibility();
+            } catch (err) {
+                console.error('Error loading settings:', err);
+            }
+        }
+
+        function updateCategoryInputVisibility() {
+            const checkbox = document.getElementById('allowCustomCategories');
+            const section = document.getElementById('predefinedCategoriesSection');
+            
+            if (checkbox.checked) {
+                section.style.opacity = '0.5';
+            } else {
+                section.style.opacity = '1';
+            }
+        }
+
+        async function saveAdminSettings() {
+            const allowCustomCategories = document.getElementById('allowCustomCategories').checked;
+            const allowedCategories = document.getElementById('allowedCategories').value;
+
+            try {
+                showMessage('loading');
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SCRIPT_URL;
+                form.target = 'hidden_iframe';
+                form.style.display = 'none';
+
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'saveSettings';
+                form.appendChild(actionInput);
+
+                const allowInput = document.createElement('input');
+                allowInput.type = 'hidden';
+                allowInput.name = 'allowCustomCategories';
+                allowInput.value = allowCustomCategories;
+                form.appendChild(allowInput);
+
+                const categoriesInput = document.createElement('input');
+                categoriesInput.type = 'hidden';
+                categoriesInput.name = 'allowedCategories';
+                categoriesInput.value = allowedCategories;
+                form.appendChild(categoriesInput);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    hideMessage('loading');
+                    document.getElementById('settingsSuccess').classList.remove('hidden');
+                    setTimeout(() => {
+                        document.getElementById('settingsSuccess').classList.add('hidden');
+                    }, 3000);
+                }, 1000);
+
+            } catch (err) {
+                showMessage('error', 'Kunde inte spara inställningar. Försök igen.');
+                console.error('Error saving settings:', err);
+            }
+        }
+
+        function cancelAdminSettings() {
+            loadAdminSettings();
         }
 
         // Delete post
@@ -432,7 +580,6 @@
 
             postCount.textContent = `Visar ${filteredPosts.length} av ${allPosts.length} inlägg`;
 
-            // Update category filter
             updateCategoryFilter();
 
             if (filteredPosts.length === 0) {
@@ -557,6 +704,9 @@
             }, 250);
         }
 
+        // Update checkbox listener
+        document.getElementById('allowCustomCategories').addEventListener('change', updateCategoryInputVisibility);
+
         // Allow Enter key in password field
         document.getElementById('passwordInput').addEventListener('keydown', function(e) {
             if (e.key === 'Enter') {
@@ -564,12 +714,13 @@
             }
         });
 
+        // Setup admin button on page load
+        updateAdminButton();
+
         // Initial load
         fetchPosts();
         
         // Auto-refresh disabled - users can manually refresh using the button
-        
-    
     </script>
 </body>
 </html>
