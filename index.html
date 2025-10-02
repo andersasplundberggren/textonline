@@ -15,6 +15,581 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
+        // Google Sheets Configuration
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec';
+
+        const Search = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="m21 21-4.35-4.35"></path>
+            </svg>
+        );
+
+        const Download = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+        );
+
+        const LogIn = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+            </svg>
+        );
+
+        const LogOut = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+        );
+
+        const Trash2 = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+        );
+
+        const Edit2 = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+        );
+
+        const X = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        );
+
+        const Check = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        );
+
+        const Refresh = ({ size = 24 }) => (
+            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <polyline points="1 20 1 14 7 14"></polyline>
+                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+            </svg>
+        );
+
+        const ContentBoard = () => {
+            const [posts, setPosts] = useState([]);
+            const [category, setCategory] = useState('');
+            const [content, setContent] = useState('');
+            const [filterCategory, setFilterCategory] = useState('alla');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [sortOrder, setSortOrder] = useState('newest');
+            const [isAdmin, setIsAdmin] = useState(false);
+            const [showLogin, setShowLogin] = useState(false);
+            const [password, setPassword] = useState('');
+            const [editingId, setEditingId] = useState(null);
+            const [editCategory, setEditCategory] = useState('');
+            const [editContent, setEditContent] = useState('');
+            const [showSuccess, setShowSuccess] = useState(false);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState('');
+
+            const ADMIN_PASSWORD = 'admin123';
+
+            // Fetch posts from Google Sheets
+            const fetchPosts = async () => {
+                try {
+                    setLoading(true);
+                    setError('');
+                    const response = await fetch(SCRIPT_URL);
+                    const data = await response.json();
+                    setPosts(data.filter(post => post.id)); // Filter out empty rows
+                    setLoading(false);
+                } catch (err) {
+                    setError('Kunde inte hämta inlägg. Försök igen.');
+                    setLoading(false);
+                    console.error('Error fetching posts:', err);
+                }
+            };
+
+            // Load posts on mount
+            useEffect(() => {
+                fetchPosts();
+                // Auto-refresh every 30 seconds
+                const interval = setInterval(fetchPosts, 30000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const handleSubmit = async () => {
+                if (!category.trim() || !content.trim()) return;
+
+                const newPost = {
+                    id: Date.now(),
+                    category: category.trim(),
+                    content: content.trim(),
+                    timestamp: new Date().toISOString(),
+                    action: 'add'
+                };
+
+                try {
+                    setLoading(true);
+                    const response = await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(newPost)
+                    });
+
+                    // Since we're using no-cors, we can't read the response
+                    // Wait a bit and then refresh
+                    setTimeout(() => {
+                        fetchPosts();
+                        setCategory('');
+                        setContent('');
+                        setShowSuccess(true);
+                        setLoading(false);
+                        setTimeout(() => setShowSuccess(false), 3000);
+                    }, 1000);
+
+                } catch (err) {
+                    setError('Kunde inte publicera inlägg. Försök igen.');
+                    setLoading(false);
+                    console.error('Error posting:', err);
+                }
+            };
+
+            const handleLogin = () => {
+                if (password === ADMIN_PASSWORD) {
+                    setIsAdmin(true);
+                    setShowLogin(false);
+                    setPassword('');
+                } else {
+                    alert('Fel lösenord');
+                }
+            };
+
+            const handleDelete = async (id) => {
+                if (!window.confirm('Är du säker på att du vill radera detta inlägg?')) return;
+
+                try {
+                    setLoading(true);
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'delete',
+                            id: id
+                        })
+                    });
+
+                    setTimeout(() => {
+                        fetchPosts();
+                        setLoading(false);
+                    }, 1000);
+
+                } catch (err) {
+                    setError('Kunde inte radera inlägg. Försök igen.');
+                    setLoading(false);
+                    console.error('Error deleting:', err);
+                }
+            };
+
+            const startEdit = (post) => {
+                setEditingId(post.id);
+                setEditCategory(post.category);
+                setEditContent(post.content);
+            };
+
+            const saveEdit = async () => {
+                try {
+                    setLoading(true);
+                    await fetch(SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            action: 'update',
+                            id: editingId,
+                            category: editCategory.trim(),
+                            content: editContent.trim()
+                        })
+                    });
+
+                    setTimeout(() => {
+                        fetchPosts();
+                        cancelEdit();
+                        setLoading(false);
+                    }, 1000);
+
+                } catch (err) {
+                    setError('Kunde inte uppdatera inlägg. Försök igen.');
+                    setLoading(false);
+                    console.error('Error updating:', err);
+                }
+            };
+
+            const cancelEdit = () => {
+                setEditingId(null);
+                setEditCategory('');
+                setEditContent('');
+            };
+
+            const exportToPDF = () => {
+                const printWindow = window.open('', '', 'width=800,height=600');
+                const filteredPosts = getFilteredPosts();
+                
+                const htmlContent = '<html><head><title>Innehållstavla Export</title><style>body { font-family: Arial, sans-serif; padding: 20px; } h1 { color: #333; } .post { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; } .category { font-weight: bold; color: #4F46E5; } .timestamp { color: #666; font-size: 12px; } .content { margin-top: 8px; }</style></head><body><h1>Innehållstavla - Export</h1><p>Exporterad: ' + new Date().toLocaleString('sv-SE') + '</p><p>Antal inlägg: ' + filteredPosts.length + '</p><hr>' + filteredPosts.map(post => '<div class="post"><div class="category">' + post.category + '</div><div class="timestamp">' + new Date(post.timestamp).toLocaleString('sv-SE') + '</div><div class="content">' + post.content + '</div></div>').join('') + '</body></html>';
+                
+                printWindow.document.write(htmlContent);
+                printWindow.document.close();
+                setTimeout(() => {
+                    printWindow.print();
+                }, 250);
+            };
+
+            const getFilteredPosts = () => {
+                let filtered = posts;
+
+                if (filterCategory !== 'alla') {
+                    filtered = filtered.filter(p => p.category === filterCategory);
+                }
+
+                if (searchTerm) {
+                    filtered = filtered.filter(p => 
+                        p.content.toLowerCase().includes(searchTerm.toLowerCase())
+                    );
+                }
+
+                return filtered.sort((a, b) => {
+                    if (sortOrder === 'newest') {
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    } else {
+                        return new Date(a.timestamp) - new Date(b.timestamp);
+                    }
+                });
+            };
+
+            const categories = ['alla', ...new Set(posts.map(p => p.category))];
+            const filteredPosts = getFilteredPosts();
+            const categoryCount = posts.reduce((acc, post) => {
+                acc[post.category] = (acc[post.category] || 0) + 1;
+                return acc;
+            }, {});
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+                    <div className="max-w-6xl mx-auto">
+                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <div className="flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-3xl font-bold text-gray-800">Innehållstavla</h1>
+                                    <p className="text-sm text-gray-500 mt-1">Synkroniserat med Google Sheets</p>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={fetchPosts}
+                                        disabled={loading}
+                                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
+                                        title="Uppdatera inlägg"
+                                    >
+                                        <Refresh size={18} />
+                                        <span className="hidden sm:inline">Uppdatera</span>
+                                    </button>
+                                    <button
+                                        onClick={() => isAdmin ? setIsAdmin(false) : setShowLogin(true)}
+                                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
+                                    >
+                                        {isAdmin ? (
+                                            <React.Fragment>
+                                                <LogOut size={18} />
+                                                <span>Logga ut</span>
+                                            </React.Fragment>
+                                        ) : (
+                                            <React.Fragment>
+                                                <LogIn size={18} />
+                                                <span>Admin</span>
+                                            </React.Fragment>
+                                        )}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {showLogin && (
+                            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                                <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+                                    <h2 className="text-xl font-bold mb-4">Admin-inloggning</h2>
+                                    <div className="space-y-4">
+                                        <input
+                                            type="password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
+                                            placeholder="Lösenord"
+                                            className="w-full p-3 border border-gray-300 rounded-lg"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={handleLogin}
+                                                className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
+                                            >
+                                                Logga in
+                                            </button>
+                                            <button
+                                                onClick={() => setShowLogin(false)}
+                                                className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
+                                            >
+                                                Avbryt
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-gray-500 mt-3">Tips: Lösenord är "admin123"</p>
+                                </div>
+                            </div>
+                        )}
+
+                        {showSuccess && (
+                            <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+                                ✓ Inlägg publicerat! Uppdateras snart för alla besökare.
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+                                {error}
+                            </div>
+                        )}
+
+                        {loading && (
+                            <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6">
+                                Laddar...
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <h2 className="text-xl font-semibold mb-4">Skapa nytt inlägg</h2>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Kategori
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={category}
+                                        onChange={(e) => setCategory(e.target.value)}
+                                        placeholder="T.ex. Feedback, Fråga, Idé"
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Innehåll
+                                    </label>
+                                    <textarea
+                                        value={content}
+                                        onChange={(e) => setContent(e.target.value)}
+                                        placeholder="Skriv ditt meddelande här..."
+                                        rows={4}
+                                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                        disabled={loading}
+                                    />
+                                </div>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={loading || !category.trim() || !content.trim()}
+                                    className="w-full bg-indigo-600 text-white py-3 rounded-lg hover:bg-indigo-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    {loading ? 'Publicerar...' : 'Publicera anonymt'}
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Filtrera kategori
+                                    </label>
+                                    <select
+                                        value={filterCategory}
+                                        onChange={(e) => setFilterCategory(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg"
+                                    >
+                                        {categories.map(cat => (
+                                            <option key={cat} value={cat}>
+                                                {cat} {cat !== 'alla' && '(' + (categoryCount[cat] || 0) + ')'}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Sortera
+                                    </label>
+                                    <select
+                                        value={sortOrder}
+                                        onChange={(e) => setSortOrder(e.target.value)}
+                                        className="w-full p-2 border border-gray-300 rounded-lg"
+                                    >
+                                        <option value="newest">Nyast först</option>
+                                        <option value="oldest">Äldst först</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                                        Sök i innehåll
+                                    </label>
+                                    <div className="relative">
+                                        <div className="absolute left-3 top-2.5 text-gray-400">
+                                            <Search size={18} />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={searchTerm}
+                                            onChange={(e) => setSearchTerm(e.target.value)}
+                                            placeholder="Sök..."
+                                            className="w-full pl-10 p-2 border border-gray-300 rounded-lg"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-4 flex justify-between items-center flex-wrap gap-2">
+                                <span className="text-sm text-gray-600">
+                                    Visar {filteredPosts.length} av {posts.length} inlägg
+                                </span>
+                                <button
+                                    onClick={exportToPDF}
+                                    className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                                >
+                                    <Download size={18} />
+                                    <span>Exportera PDF</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            {filteredPosts.length === 0 ? (
+                                <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+                                    {loading ? 'Laddar inlägg...' : 'Inga inlägg att visa'}
+                                </div>
+                            ) : (
+                                filteredPosts.map(post => (
+                                    <div key={post.id} className="bg-white rounded-lg shadow-lg p-6">
+                                        {editingId === post.id ? (
+                                            <div className="space-y-3">
+                                                <input
+                                                    type="text"
+                                                    value={editCategory}
+                                                    onChange={(e) => setEditCategory(e.target.value)}
+                                                    className="w-full p-2 border border-gray-300 rounded"
+                                                    disabled={loading}
+                                                />
+                                                <textarea
+                                                    value={editContent}
+                                                    onChange={(e) => setEditContent(e.target.value)}
+                                                    rows={3}
+                                                    className="w-full p-2 border border-gray-300 rounded"
+                                                    disabled={loading}
+                                                />
+                                                <div className="flex gap-2">
+                                                    <button
+                                                        onClick={saveEdit}
+                                                        disabled={loading}
+                                                        className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+                                                    >
+                                                        <Check size={16} />
+                                                        <span>Spara</span>
+                                                    </button>
+                                                    <button
+                                                        onClick={cancelEdit}
+                                                        disabled={loading}
+                                                        className="flex items-center gap-1 px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
+                                                    >
+                                                        <X size={16} />
+                                                        <span>Avbryt</span>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <React.Fragment>
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                                                        {post.category}
+                                                    </span>
+                                                    {isAdmin && (
+                                                        <div className="flex gap-2">
+                                                            <button
+                                                                onClick={() => startEdit(post)}
+                                                                disabled={loading}
+                                                                className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                                            >
+                                                                <Edit2 size={18} />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleDelete(post.id)}
+                                                                disabled={loading}
+                                                                className="text-red-600 hover:text-red-800 disabled:opacity-50"
+                                                            >
+                                                                <Trash2 size={18} />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <p className="text-gray-700 mb-2">{post.content}</p>
+                                                <span className="text-xs text-gray-500">
+                                                    {new Date(post.timestamp).toLocaleString('sv-SE')}
+                                                </span>
+                                            </React.Fragment>
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ContentBoard />);
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innehållstavla</title>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
         const Search = ({ size = 24 }) => (
             <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="8"></circle>
