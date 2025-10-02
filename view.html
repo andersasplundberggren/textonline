@@ -73,7 +73,6 @@
                         <span class="hidden sm:inline">Uppdatera</span>
                     </button>
                     <button
-                        onclick="toggleAdminLogin()"
                         id="adminButton"
                         class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
                     >
@@ -107,7 +106,7 @@
                             Logga in
                         </button>
                         <button
-                            onclick="toggleAdminLogin()"
+                            onclick="closeLoginModal()"
                             class="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
                         >
                             Avbryt
@@ -306,29 +305,32 @@
             }
         }
 
-        // Admin login
-        function toggleAdminLogin() {
-            const modal = document.getElementById('loginModal');
-            if (isAdmin) {
-                isAdmin = false;
-                updateAdminButton();
-                renderPosts();
-            } else {
-                modal.classList.toggle('hidden');
-            }
+        // Admin login functions
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.remove('hidden');
+        }
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
         }
 
         function handleLogin() {
             const password = document.getElementById('passwordInput').value;
             if (password === ADMIN_PASSWORD) {
                 isAdmin = true;
-                toggleAdminLogin();
+                closeLoginModal();
                 updateAdminButton();
                 renderPosts();
                 document.getElementById('passwordInput').value = '';
             } else {
                 alert('Fel lösenord');
             }
+        }
+
+        function logoutAdmin() {
+            isAdmin = false;
+            updateAdminButton();
+            renderPosts();
         }
 
         function updateAdminButton() {
@@ -344,6 +346,7 @@
                     </svg>
                     <span>Logga ut</span>
                 `;
+                btn.onclick = logoutAdmin;
                 adminPanel.classList.remove('hidden');
                 loadAdminSettings();
             } else {
@@ -355,6 +358,7 @@
                     </svg>
                     <span>Admin</span>
                 `;
+                btn.onclick = openLoginModal;
                 adminPanel.classList.add('hidden');
             }
         }
@@ -576,7 +580,6 @@
 
             postCount.textContent = `Visar ${filteredPosts.length} av ${allPosts.length} inlägg`;
 
-            // Update category filter
             updateCategoryFilter();
 
             if (filteredPosts.length === 0) {
@@ -687,7 +690,7 @@
             filterSelect.value = currentValue;
         }
 
-       // Export to PDF
+        // Export to PDF
         function exportToPDF() {
             const printWindow = window.open('', '', 'width=800,height=600');
             const filteredPosts = getFilteredPosts();
@@ -710,6 +713,9 @@
                 handleLogin();
             }
         });
+
+        // Setup admin button on page load
+        updateAdminButton();
 
         // Initial load
         fetchPosts();
