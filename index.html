@@ -3,789 +3,108 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Innehållstavla</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+    <title>Innehållstavla - Hem</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div id="root"></div>
-    <iframe name="hidden_iframe" style="display:none;"></iframe>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <div class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
+        </div>
+    </div>
 
-    <script type="text/babel">
-        const { useState, useEffect } = React;
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md mb-6">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-center md:justify-start space-x-1">
+                <a href="index.html" class="flex items-center gap-2 px-6 py-4 font-medium text-indigo-600 border-b-2 border-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Hem</span>
+                </a>
+                <a href="create.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Skapa inlägg</span>
+                </a>
+                <a href="view.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span>Visa inlägg</span>
+                </a>
+            </div>
+        </div>
+    </nav>
 
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec';
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <div class="bg-white rounded-lg shadow-xl p-8 md:p-12 text-center">
+                <div class="mb-8">
+                    <svg width="64" height="64" class="mx-auto text-indigo-600 mb-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
+                        Välkommen till Innehållstavlan
+                    </h1>
+                    <p class="text-xl text-gray-600 mb-8">
+                        Dela dina tankar, idéer och feedback anonymt med alla
+                    </p>
+                </div>
 
-        const Home = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                <polyline points="9 22 9 12 15 12 15 22"></polyline>
-            </svg>
-        );
-
-        const PenSquare = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-        );
-
-        const List = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="8" y1="6" x2="21" y2="6"></line>
-                <line x1="8" y1="12" x2="21" y2="12"></line>
-                <line x1="8" y1="18" x2="21" y2="18"></line>
-                <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                <line x1="3" y1="18" x2="3.01" y2="18"></line>
-            </svg>
-        );
-
-        const Search = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"></circle>
-                <path d="m21 21-4.35-4.35"></path>
-            </svg>
-        );
-
-        const Download = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7 10 12 15 17 10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-        );
-
-        const LogIn = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                <polyline points="10 17 15 12 10 7"></polyline>
-                <line x1="15" y1="12" x2="3" y2="12"></line>
-            </svg>
-        );
-
-        const LogOut = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-        );
-
-        const Trash2 = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="3 6 5 6 21 6"></polyline>
-                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-            </svg>
-        );
-
-        const Edit2 = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
-            </svg>
-        );
-
-        const X = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-            </svg>
-        );
-
-        const Check = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-        );
-
-        const Refresh = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="23 4 23 10 17 10"></polyline>
-                <polyline points="1 20 1 14 7 14"></polyline>
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-            </svg>
-        );
-
-        const MessageSquare = ({ size = 24 }) => (
-            <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-        );
-
-        // Navigation Component
-        const Navigation = ({ currentPage, setCurrentPage }) => {
-            return (
-                <nav className="bg-white shadow-md mb-6">
-                    <div className="max-w-6xl mx-auto px-4">
-                        <div className="flex justify-center md:justify-start space-x-1">
-                            <button
-                                onClick={() => setCurrentPage('home')}
-                                className={`flex items-center gap-2 px-6 py-4 font-medium transition ${
-                                    currentPage === 'home'
-                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
-                                        : 'text-gray-600 hover:text-indigo-600'
-                                }`}
-                            >
-                                <Home size={20} />
-                                <span>Hem</span>
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage('create')}
-                                className={`flex items-center gap-2 px-6 py-4 font-medium transition ${
-                                    currentPage === 'create'
-                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
-                                        : 'text-gray-600 hover:text-indigo-600'
-                                }`}
-                            >
-                                <PenSquare size={20} />
-                                <span>Skapa inlägg</span>
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage('view')}
-                                className={`flex items-center gap-2 px-6 py-4 font-medium transition ${
-                                    currentPage === 'view'
-                                        ? 'text-indigo-600 border-b-2 border-indigo-600'
-                                        : 'text-gray-600 hover:text-indigo-600'
-                                }`}
-                            >
-                                <List size={20} />
-                                <span>Visa inlägg</span>
-                            </button>
-                        </div>
+                <div class="grid md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-indigo-50 rounded-lg p-6 hover:bg-indigo-100 transition">
+                        <svg width="40" height="40" class="mx-auto text-indigo-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2">Skapa inlägg</h3>
+                        <p class="text-gray-600 mb-4">
+                            Dela dina tankar helt anonymt. Välj en kategori och skriv ditt meddelande.
+                        </p>
+                        <a href="create.html" class="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition">
+                            Skapa nu
+                        </a>
                     </div>
-                </nav>
-            );
-        };
 
-        // Home Page
-        const HomePage = ({ setCurrentPage }) => {
-            return (
-                <div className="max-w-4xl mx-auto">
-                    <div className="bg-white rounded-lg shadow-xl p-8 md:p-12 text-center">
-                        <div className="mb-8">
-                            <MessageSquare size={64} className="mx-auto text-indigo-600 mb-4" />
-                            <h1 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
-                                Välkommen till Innehållstavlan
-                            </h1>
-                            <p className="text-xl text-gray-600 mb-8">
-                                Dela dina tankar, idéer och feedback anonymt med alla
-                            </p>
-                        </div>
-
-                        <div className="grid md:grid-cols-2 gap-6 mb-8">
-                            <div className="bg-indigo-50 rounded-lg p-6 hover:bg-indigo-100 transition">
-                                <PenSquare size={40} className="mx-auto text-indigo-600 mb-3" />
-                                <h3 className="text-xl font-semibold mb-2">Skapa inlägg</h3>
-                                <p className="text-gray-600 mb-4">
-                                    Dela dina tankar helt anonymt. Välj en kategori och skriv ditt meddelande.
-                                </p>
-                                <button
-                                    onClick={() => setCurrentPage('create')}
-                                    className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
-                                >
-                                    Skapa nu
-                                </button>
-                            </div>
-
-                            <div className="bg-green-50 rounded-lg p-6 hover:bg-green-100 transition">
-                                <List size={40} className="mx-auto text-green-600 mb-3" />
-                                <h3 className="text-xl font-semibold mb-2">Visa inlägg</h3>
-                                <p className="text-gray-600 mb-4">
-                                    Läs vad andra har delat. Filtrera, sök och utforska alla inlägg.
-                                </p>
-                                <button
-                                    onClick={() => setCurrentPage('view')}
-                                    className="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition"
-                                >
-                                    Visa inlägg
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="bg-gray-50 rounded-lg p-6">
-                            <h3 className="text-lg font-semibold mb-2">Helt anonymt & säkert</h3>
-                            <p className="text-gray-600">
-                                Alla inlägg är anonyma. Vi sparar ingen personlig information om vem som skriver vad.
-                            </p>
-                        </div>
+                    <div class="bg-green-50 rounded-lg p-6 hover:bg-green-100 transition">
+                        <svg width="40" height="40" class="mx-auto text-green-600 mb-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                        <h3 class="text-xl font-semibold mb-2">Visa inlägg</h3>
+                        <p class="text-gray-600 mb-4">
+                            Läs vad andra har delat. Filtrera, sök och utforska alla inlägg.
+                        </p>
+                        <a href="view.html" class="inline-block bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 transition">
+                            Visa inlägg
+                        </a>
                     </div>
                 </div>
-            );
-        };
 
-        // Create Post Page
-        const CreatePostPage = ({ onPostCreated }) => {
-            const [category, setCategory] = useState('');
-            const [content, setContent] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [showSuccess, setShowSuccess] = useState(false);
-            const [error, setError] = useState('');
-
-            const handleSubmit = async () => {
-                if (!category.trim() || !content.trim()) {
-                    setError('Fyll i både kategori och innehåll');
-                    return;
-                }
-
-                const newPost = {
-                    id: Date.now(),
-                    category: category.trim(),
-                    content: content.trim(),
-                    timestamp: new Date().toISOString(),
-                    action: 'add'
-                };
-
-                try {
-                    setLoading(true);
-                    setError('');
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = SCRIPT_URL;
-                    form.target = 'hidden_iframe';
-                    form.style.display = 'none';
-
-                    Object.keys(newPost).forEach(key => {
-                        const input = document.createElement('input');
-                        input.type = 'hidden';
-                        input.name = key;
-                        input.value = newPost[key];
-                        form.appendChild(input);
-                    });
-
-                    document.body.appendChild(form);
-                    form.submit();
-                    document.body.removeChild(form);
-
-                    setTimeout(() => {
-                        setCategory('');
-                        setContent('');
-                        setShowSuccess(true);
-                        setLoading(false);
-                        setTimeout(() => setShowSuccess(false), 5000);
-                        if (onPostCreated) onPostCreated();
-                    }, 2000);
-
-                } catch (err) {
-                    setError('Kunde inte publicera inlägg. Försök igen.');
-                    setLoading(false);
-                    console.error('Error posting:', err);
-                }
-            };
-
-            return (
-                <div className="max-w-3xl mx-auto">
-                    {showSuccess && (
-                        <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
-                            ✓ Inlägg publicerat! Det syns snart för alla besökare.
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-                            {error}
-                        </div>
-                    )}
-
-                    <div className="bg-white rounded-lg shadow-lg p-8">
-                        <h2 className="text-3xl font-bold mb-2">Skapa nytt inlägg</h2>
-                        <p className="text-gray-600 mb-6">Ditt inlägg publiceras anonymt och är synligt för alla besökare</p>
-                        
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Kategori *
-                                </label>
-                                <input
-                                    type="text"
-                                    value={category}
-                                    onChange={(e) => setCategory(e.target.value)}
-                                    placeholder="T.ex. Feedback, Fråga, Idé, Förslag"
-                                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
-                                    disabled={loading}
-                                />
-                                <p className="text-sm text-gray-500 mt-1">Välj en passande kategori för ditt inlägg</p>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Innehåll *
-                                </label>
-                                <textarea
-                                    value={content}
-                                    onChange={(e) => setContent(e.target.value)}
-                                    placeholder="Skriv ditt meddelande här..."
-                                    rows={8}
-                                    className="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
-                                    disabled={loading}
-                                />
-                                <p className="text-sm text-gray-500 mt-1">Beskriv dina tankar, frågor eller feedback</p>
-                            </div>
-
-                            <button
-                                onClick={handleSubmit}
-                                disabled={loading || !category.trim() || !content.trim()}
-                                className="w-full bg-indigo-600 text-white py-4 rounded-lg hover:bg-indigo-700 transition font-medium text-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                {loading ? 'Publicerar...' : 'Publicera anonymt'}
-                            </button>
-                        </div>
-                    </div>
+                <div class="bg-gray-50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold mb-2">Helt anonymt & säkert</h3>
+                    <p class="text-gray-600">
+                        Alla inlägg är anonyma. Vi sparar ingen personlig information om vem som skriver vad.
+                    </p>
                 </div>
-            );
-        };
-
-        // View Posts Page
-        const ViewPostsPage = () => {
-            const [posts, setPosts] = useState([]);
-            const [filterCategory, setFilterCategory] = useState('alla');
-            const [searchTerm, setSearchTerm] = useState('');
-            const [sortOrder, setSortOrder] = useState('newest');
-            const [isAdmin, setIsAdmin] = useState(false);
-            const [showLogin, setShowLogin] = useState(false);
-            const [password, setPassword] = useState('');
-            const [editingId, setEditingId] = useState(null);
-            const [editCategory, setEditCategory] = useState('');
-            const [editContent, setEditContent] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [error, setError] = useState('');
-
-            const ADMIN_PASSWORD = 'admin123';
-
-            const fetchPosts = async () => {
-                try {
-                    setLoading(true);
-                    setError('');
-                    const response = await fetch(SCRIPT_URL);
-                    const data = await response.json();
-                    setPosts(data.filter(post => post.id));
-                    setLoading(false);
-                } catch (err) {
-                    setError('Kunde inte hämta inlägg. Försök igen.');
-                    setLoading(false);
-                    console.error('Error fetching posts:', err);
-                }
-            };
-
-            useEffect(() => {
-                fetchPosts();
-                const interval = setInterval(fetchPosts, 30000);
-                return () => clearInterval(interval);
-            }, []);
-
-            const handleLogin = () => {
-                if (password === ADMIN_PASSWORD) {
-                    setIsAdmin(true);
-                    setShowLogin(false);
-                    setPassword('');
-                } else {
-                    alert('Fel lösenord');
-                }
-            };
-
-            const handleDelete = async (id) => {
-                if (!window.confirm('Är du säker på att du vill radera detta inlägg?')) return;
-
-                try {
-                    setLoading(true);
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = SCRIPT_URL;
-                    form.target = 'hidden_iframe';
-                    form.style.display = 'none';
-
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'delete';
-                    form.appendChild(actionInput);
-
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = 'id';
-                    idInput.value = id;
-                    form.appendChild(idInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
-                    document.body.removeChild(form);
-
-                    setTimeout(() => {
-                        fetchPosts();
-                        setLoading(false);
-                    }, 2000);
-
-                } catch (err) {
-                    setError('Kunde inte radera inlägg. Försök igen.');
-                    setLoading(false);
-                    console.error('Error deleting:', err);
-                }
-            };
-
-            const startEdit = (post) => {
-                setEditingId(post.id);
-                setEditCategory(post.category);
-                setEditContent(post.content);
-            };
-
-            const saveEdit = async () => {
-                try {
-                    setLoading(true);
-                    
-                    const form = document.createElement('form');
-                    form.method = 'POST';
-                    form.action = SCRIPT_URL;
-                    form.target = 'hidden_iframe';
-                    form.style.display = 'none';
-
-                    const actionInput = document.createElement('input');
-                    actionInput.type = 'hidden';
-                    actionInput.name = 'action';
-                    actionInput.value = 'update';
-                    form.appendChild(actionInput);
-
-                    const idInput = document.createElement('input');
-                    idInput.type = 'hidden';
-                    idInput.name = 'id';
-                    idInput.value = editingId;
-                    form.appendChild(idInput);
-
-                    const categoryInput = document.createElement('input');
-                    categoryInput.type = 'hidden';
-                    categoryInput.name = 'category';
-                    categoryInput.value = editCategory.trim();
-                    form.appendChild(categoryInput);
-
-                    const contentInput = document.createElement('input');
-                    contentInput.type = 'hidden';
-                    contentInput.name = 'content';
-                    contentInput.value = editContent.trim();
-                    form.appendChild(contentInput);
-
-                    document.body.appendChild(form);
-                    form.submit();
-                    document.body.removeChild(form);
-
-                    setTimeout(() => {
-                        fetchPosts();
-                        cancelEdit();
-                        setLoading(false);
-                    }, 2000);
-
-                } catch (err) {
-                    setError('Kunde inte uppdatera inlägg. Försök igen.');
-                    setLoading(false);
-                    console.error('Error updating:', err);
-                }
-            };
-
-            const cancelEdit = () => {
-                setEditingId(null);
-                setEditCategory('');
-                setEditContent('');
-            };
-
-            const exportToPDF = () => {
-                const printWindow = window.open('', '', 'width=800,height=600');
-                const filteredPosts = getFilteredPosts();
-                
-                const htmlContent = '<html><head><title>Innehållstavla Export</title><style>body { font-family: Arial, sans-serif; padding: 20px; } h1 { color: #333; } .post { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; } .category { font-weight: bold; color: #4F46E5; } .timestamp { color: #666; font-size: 12px; } .content { margin-top: 8px; }</style></head><body><h1>Innehållstavla - Export</h1><p>Exporterad: ' + new Date().toLocaleString('sv-SE') + '</p><p>Antal inlägg: ' + filteredPosts.length + '</p><hr>' + filteredPosts.map(post => '<div class="post"><div class="category">' + post.category + '</div><div class="timestamp">' + new Date(post.timestamp).toLocaleString('sv-SE') + '</div><div class="content">' + post.content + '</div></div>').join('') + '</body></html>';
-                
-                printWindow.document.write(htmlContent);
-                printWindow.document.close();
-                setTimeout(() => {
-                    printWindow.print();
-                }, 250);
-            };
-
-            const getFilteredPosts = () => {
-                let filtered = posts;
-
-                if (filterCategory !== 'alla') {
-                    filtered = filtered.filter(p => p.category === filterCategory);
-                }
-
-                if (searchTerm) {
-                    filtered = filtered.filter(p => 
-                        p.content.toLowerCase().includes(searchTerm.toLowerCase())
-                    );
-                }
-
-                return filtered.sort((a, b) => {
-                    if (sortOrder === 'newest') {
-                        return new Date(b.timestamp) - new Date(a.timestamp);
-                    } else {
-                        return new Date(a.timestamp) - new Date(b.timestamp);
-                    }
-                });
-            };
-
-            const categories = ['alla', ...new Set(posts.map(p => p.category))];
-            const filteredPosts = getFilteredPosts();
-            const categoryCount = posts.reduce((acc, post) => {
-                acc[post.category] = (acc[post.category] || 0) + 1;
-                return acc;
-            }, {});
-
-            return (
-                <div className="max-w-6xl mx-auto">
-                    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                        <div className="flex justify-between items-center">
-                            <div>
-                                <h2 className="text-2xl font-bold text-gray-800">Alla inlägg</h2>
-                                <p className="text-sm text-gray-500 mt-1">Synkroniserat med Google Sheets</p>
-                            </div>
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={fetchPosts}
-                                    disabled={loading}
-                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50"
-                                    title="Uppdatera inlägg"
-                                >
-                                    <Refresh size={18} />
-                                    <span className="hidden sm:inline">Uppdatera</span>
-                                </button>
-                                <button
-                                    onClick={() => isAdmin ? setIsAdmin(false) : setShowLogin(true)}
-                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition"
-                                >
-                                    {isAdmin ? (
-                                        <React.Fragment>
-                                            <LogOut size={18} />
-                                            <span>Logga ut</span>
-                                        </React.Fragment>
-                                    ) : (
-                                        <React.Fragment>
-                                            <LogIn size={18} />
-                                            <span>Admin</span>
-                                        </React.Fragment>
-                                    )}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    {showLogin && (
-                        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-                                <h2 className="text-xl font-bold mb-4">Admin-inloggning</h2>
-                                <div className="space-y-4">
-                                    <input
-                                        type="password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        onKeyPress={(e) => e.key === 'Enter' && handleLogin()}
-                                        placeholder="Lösenord"
-                                        className="w-full p-3 border border-gray-300 rounded-lg"
-                                    />
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={handleLogin}
-                                            className="flex-1 bg-indigo-600 text-white py-2 rounded-lg hover:bg-indigo-700"
-                                        >
-                                            Logga in
-                                        </button>
-                                        <button
-                                            onClick={() => setShowLogin(false)}
-                                            className="flex-1 bg-gray-300 text-gray-700 py-2 rounded-lg hover:bg-gray-400"
-                                        >
-                                            Avbryt
-                                        </button>
-                                    </div>
-                                </div>
-                                <p className="text-sm text-gray-500 mt-3">Tips: Lösenord är "admin123"</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
-                            {error}
-                        </div>
-                    )}
-
-                    {loading && (
-                        <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6">
-                            Laddar...
-                        </div>
-                    )}
-
-                    <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Filtrera kategori
-                                </label>
-                                <select
-                                    value={filterCategory}
-                                    onChange={(e) => setFilterCategory(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg"
-                                >
-                                    {categories.map(cat => (
-                                        <option key={cat} value={cat}>
-                                            {cat} {cat !== 'alla' && '(' + (categoryCount[cat] || 0) + ')'}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Sortera
-                                </label>
-                                <select
-                                    value={sortOrder}
-                                    onChange={(e) => setSortOrder(e.target.value)}
-                                    className="w-full p-2 border border-gray-300 rounded-lg"
-                                >
-                                    <option value="newest">Nyast först</option>
-                                    <option value="oldest">Äldst först</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Sök i innehåll
-                                </label>
-                                <div className="relative">
-                                    <div className="absolute left-3 top-2.5 text-gray-400">
-                                        <Search size={18} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        value={searchTerm}
-                                        onChange={(e) => setSearchTerm(e.target.value)}
-                                        placeholder="Sök..."
-                                        className="w-full pl-10 p-2 border border-gray-300 rounded-lg"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-4 flex justify-between items-center flex-wrap gap-2">
-                            <span className="text-sm text-gray-600">
-                                Visar {filteredPosts.length} av {posts.length} inlägg
-                            </span>
-                            <button
-                                onClick={exportToPDF}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
-                            >
-                                <Download size={18} />
-                                <span>Exportera PDF</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        {filteredPosts.length === 0 ? (
-                            <div className="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
-                                {loading ? 'Laddar inlägg...' : 'Inga inlägg att visa'}
-                            </div>
-                        ) : (
-                            filteredPosts.map(post => (
-                                <div key={post.id} className="bg-white rounded-lg shadow-lg p-6">
-                                    {editingId === post.id ? (
-                                        <div className="space-y-3">
-                                            <input
-                                                type="text"
-                                                value={editCategory}
-                                                onChange={(e) => setEditCategory(e.target.value)}
-                                                className="w-full p-2 border border-gray-300 rounded"
-                                                disabled={loading}
-                                            />
-                                            <textarea
-                                                value={editContent}
-                                                onChange={(e) => setEditContent(e.target.value)}
-                                                rows={3}
-                                                className="w-full p-2 border border-gray-300 rounded"
-                                                disabled={loading}
-                                            />
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={saveEdit}
-                                                    disabled={loading}
-                                                    className="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-                                                >
-                                                    <Check size={16} />
-                                                    <span>Spara</span>
-                                                </button>
-                                                <button
-                                                    onClick={cancelEdit}
-                                                    disabled={loading}
-                                                    className="flex items-center gap-1 px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 disabled:opacity-50"
-                                                >
-                                                    <X size={16} />
-                                                    <span>Avbryt</span>
-                                                </button>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <React.Fragment>
-                                            <div className="flex justify-between items-start mb-2">
-                                                <span className="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
-                                                    {post.category}
-                                                </span>
-                                                {isAdmin && (
-                                                    <div className="flex gap-2">
-                                                        <button
-                                                            onClick={() => startEdit(post)}
-                                                            disabled={loading}
-                                                            className="text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                                                        >
-                                                            <Edit2 size={18} />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDelete(post.id)}
-                                                            disabled={loading}
-                                                            className="text-red-600 hover:text-red-800 disabled:opacity-50"
-                                                        >
-                                                            <Trash2 size={18} />
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <p className="text-gray-700 mb-2">{post.content}</p>
-                                            <span className="text-xs text-gray-500">
-                                                {new Date(post.timestamp).toLocaleString('sv-SE')}
-                                            </span>
-                                        </React.Fragment>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
-            );
-        };
-
-        // Main App Component
-        const ContentBoard = () => {
-            const [currentPage, setCurrentPage] = useState('home');
-
-            return (
-                <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-                    <div className="max-w-6xl mx-auto">
-                        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-                            <h1 className="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
-                        </div>
-
-                        <Navigation currentPage={currentPage} setCurrentPage={setCurrentPage} />
-
-                        {currentPage === 'home' && <HomePage setCurrentPage={setCurrentPage} />}
-                        {currentPage === 'create' && <CreatePostPage />}
-                        {currentPage === 'view' && <ViewPostsPage />}
-                    </div>
-                </div>
-            );
-        };
-
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<ContentBoard />);
-    </script>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
