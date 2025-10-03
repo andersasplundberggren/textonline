@@ -190,7 +190,8 @@
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h3 class="text-xl font-bold mb-4">Admin-inställningar</h3>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-6">
+                        <!-- Category Settings -->
                         <div class="border-b pb-4">
                             <h4 class="font-semibold mb-3">Kategori-inställningar</h4>
                             
@@ -213,11 +214,21 @@
                                     type="text"
                                     id="allowedCategories"
                                     placeholder="Feedback, Fråga, Idé, Förslag"
-                                    class="w-full p-3 border border-gray-300 rounded-lg"
+                                    class="w-full p-3 border border-gray-300 rounded-lg mb-2"
+                                    onchange="updateCategoryColorPickers()"
                                 />
                                 <p class="text-sm text-gray-500 mt-1">
                                     Dessa kategorier kommer att visas som alternativ för användare
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Category Colors -->
+                        <div class="border-b pb-4">
+                            <h4 class="font-semibold mb-3">Kategorifärger</h4>
+                            <p class="text-sm text-gray-600 mb-3">Välj färg för varje kategori (lämna tom för automatisk färg)</p>
+                            <div id="categoryColorPickers" class="space-y-2">
+                                <!-- Color pickers will be generated here -->
                             </div>
                         </div>
                         
@@ -297,16 +308,21 @@
         let allPosts = [];
         let isAdmin = false;
         let editingId = null;
-
-        // Category colors
-        const categoryColors = {
-            default: { border: '#6366f1', bg: '#eef2ff', text: '#4338ca' }
-        };
+        let categoryColors = {};
 
         function getCategoryColor(category) {
-            const normalized = category.toLowerCase();
+            // Check if we have a custom color for this category
+            if (categoryColors[category]) {
+                const color = categoryColors[category];
+                return {
+                    border: color,
+                    bg: color + '20',
+                    text: color
+                };
+            }
             
-            // Generate consistent color from category name
+            // Generate consistent color from category name (fallback)
+            const normalized = category.toLowerCase();
             let hash = 0;
             for (let i = 0; i < normalized.length; i++) {
                 hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
@@ -446,8 +462,18 @@
                     settings.allowCustomCategories === 'true' || settings.allowCustomCategories === true;
                 document.getElementById('allowedCategories').value = 
                     settings.allowedCategories || '';
+                
+                // Load category colors
+                if (settings.categoryColors) {
+                    try {
+                        categoryColors = JSON.parse(settings.categoryColors);
+                    } catch (e) {
+                        categoryColors = {};
+                    }
+                }
                     
                 updateCategoryInputVisibility();
+                updateCategoryColorPickers();
             } catch (err) {
                 console.error('Error loading settings:', err);
             }
@@ -464,9 +490,62 @@
             }
         }
 
+        function updateCategoryColorPickers() {
+            const categoriesInput = document.getElementById('allowedCategories').value;
+            const categories = categoriesInput ? categoriesInput.split(',').map(c => c.trim()).filter(c => c) : [];
+            const container = document.getElementById('categoryColorPickers');
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Inga kategorier definierade ännu</p>';
+                return;
+            }
+            
+            container.innerHTML = categories.map(cat => {
+                const currentColor = categoryColors[cat] || '';
+                const previewColor = currentColor || getCategoryColor(cat).border;
+                
+                return `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <label class="font-medium text-sm">${cat}</label>
+                        </div>
+                        <input 
+                            type="color" 
+                            id="color-${cat}" 
+                            value="${currentColor || '#6366f1'}"
+                            class="w-16 h-10 rounded cursor-pointer border-2 border-gray-300"
+                        />
+                        <div class="w-10 h-10 rounded border-2" style="background-color: ${previewColor}; border-color: ${previewColor}"></div>
+                        <button 
+                            onclick="resetCategoryColor('${cat}')"
+                            class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+                        >
+                            Återställ
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetCategoryColor(category) {
+            delete categoryColors[category];
+            updateCategoryColorPickers();
+        }
+
         async function saveAdminSettings() {
             const allowCustomCategories = document.getElementById('allowCustomCategories').checked;
             const allowedCategories = document.getElementById('allowedCategories').value;
+            
+            // Collect category colors
+            const categoriesInput = allowedCategories;
+            const categories = categoriesInput ? categoriesInput.split(',').map(c => c.trim()).filter(c => c) : [];
+            
+            categories.forEach(cat => {
+                const colorInput = document.getElementById(`color-${cat}`);
+                if (colorInput && colorInput.value) {
+                    categoryColors[cat] = colorInput.value;
+                }
+            });
 
             try {
                 showMessage('loading');
@@ -489,11 +568,17 @@
                 allowInput.value = allowCustomCategories;
                 form.appendChild(allowInput);
 
-                const categoriesInput = document.createElement('input');
-                categoriesInput.type = 'hidden';
-                categoriesInput.name = 'allowedCategories';
-                categoriesInput.value = allowedCategories;
-                form.appendChild(categoriesInput);
+                const categoriesInputEl = document.createElement('input');
+                categoriesInputEl.type = 'hidden';
+                categoriesInputEl.name = 'allowedCategories';
+                categoriesInputEl.value = allowedCategories;
+                form.appendChild(categoriesInputEl);
+
+                const colorsInput = document.createElement('input');
+                colorsInput.type = 'hidden';
+                colorsInput.name = 'categoryColors';
+                colorsInput.value = JSON.stringify(categoryColors);
+                form.appendChild(colorsInput);
 
                 document.body.appendChild(form);
                 form.submit();
@@ -505,6 +590,9 @@
                     setTimeout(() => {
                         document.getElementById('settingsSuccess').classList.add('hidden');
                     }, 3000);
+                    
+                    // Refresh posts to show new colors
+                    renderPosts();
                 }, 1000);
 
             } catch (err) {
