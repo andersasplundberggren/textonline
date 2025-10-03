@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Innehållstavla - Skapa inlägg</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <iframe name="hidden_iframe" style="display:none;"></iframe>
+
+    <!-- Header -->
+    <div class="bg-white shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md mb-6">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-center md:justify-start space-x-1">
+                <a href="index.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    <span>Hem</span>
+                </a>
+                <a href="create.html" class="flex items-center gap-2 px-6 py-4 font-medium text-indigo-600 border-b-2 border-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    <span>Skapa inlägg</span>
+                </a>
+                <a href="view.html" class="flex items-center gap-2 px-6 py-4 font-medium text-gray-600 hover:text-indigo-600">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span>Visa inlägg</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="max-w-3xl mx-auto">
+            <div id="successMessage" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg mb-6">
+                ✓ Inlägg publicerat! Det syns snart för alla besökare.
+            </div>
+
+            <div id="errorMessage" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg mb-6">
+            </div>
+
+            <div id="loadingMessage" class="hidden bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg mb-6">
+                Publicerar...
+            </div>
+
+            <div class="bg-white rounded-lg shadow-lg p-8">
+                <h2 class="text-3xl font-bold mb-2">Skapa nytt inlägg</h2>
+                <p class="text-gray-600 mb-6">Ditt inlägg publiceras anonymt och är synligt för alla besökare</p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Kategori *
+                        </label>
+                        <div id="categoryInputContainer">
+                            <input
+                                type="text"
+                                id="category"
+                                placeholder="Laddar kategorier..."
+                                class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                                disabled
+                            />
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1" id="categoryHint">Välj en passande kategori för ditt inlägg</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Innehåll *
+                        </label>
+                        <textarea
+                            id="content"
+                            placeholder="Skriv ditt meddelande här..."
+                            rows="8"
+                            class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                        ></textarea>
+                        <p class="text-sm text-gray-500 mt-1">Beskriv dina tankar, frågor eller feedback</p>
+                    </div>
+
+                    <button
+                        onclick="submitPost()"
+                        id="submitButton"
+                        class="w-full bg-indigo-600 text-white py-4 rounded-lg hover:bg-indigo-700 transition font-medium text-lg"
+                    >
+                        Publicera anonymt
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec';
+
+        // Load category settings
+        async function loadCategorySettings() {
+            try {
+                const response = await fetch(SCRIPT_URL + '?action=getSettings');
+                const settings = await response.json();
+                
+                const allowCustom = settings.allowCustomCategories === 'true' || settings.allowCustomCategories === true;
+                const categories = settings.allowedCategories ? settings.allowedCategories.split(',').map(c => c.trim()).filter(c => c) : [];
+                
+                const container = document.getElementById('categoryInputContainer');
+                
+                if (!allowCustom && categories.length > 0) {
+                    // Show dropdown with predefined categories
+                    container.innerHTML = `
+                        <select
+                            id="category"
+                            class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                        >
+                            <option value="">Välj en kategori...</option>
+                            ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
+                        </select>
+                    `;
+                    document.getElementById('categoryHint').textContent = 'Välj en kategori från listan';
+                } else if (!allowCustom && categories.length === 0) {
+                    // No categories defined by admin
+                    container.innerHTML = `
+                        <input
+                            type="text"
+                            id="category"
+                            placeholder="Inga kategorier tillgängliga - kontakta admin"
+                            disabled
+                            class="w-full p-4 border border-gray-300 rounded-lg bg-gray-100 text-lg cursor-not-allowed"
+                        />
+                    `;
+                    document.getElementById('categoryHint').textContent = 'Admin har inte lagt till några kategorier ännu';
+                    document.getElementById('submitButton').disabled = true;
+                    document.getElementById('submitButton').classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    // Show text input (custom categories allowed)
+                    container.innerHTML = `
+                        <input
+                            type="text"
+                            id="category"
+                            placeholder="T.ex. Feedback, Fråga, Idé, Förslag"
+                            class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                        />
+                    `;
+                    document.getElementById('categoryHint').textContent = 'Skriv din egen kategori';
+                }
+                
+            } catch (err) {
+                console.error('Error loading category settings:', err);
+                // Fallback to text input if settings can't be loaded
+                const container = document.getElementById('categoryInputContainer');
+                container.innerHTML = `
+                    <input
+                        type="text"
+                        id="category"
+                        placeholder="T.ex. Feedback, Fråga, Idé, Förslag"
+                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
+                    />
+                `;
+                document.getElementById('categoryHint').textContent = 'Skriv din egen kategori';
+            }
+        }
+
+        function showMessage(type, message) {
+            const successEl = document.getElementById('successMessage');
+            const errorEl = document.getElementById('errorMessage');
+            const loadingEl = document.getElementById('loadingMessage');
+            
+            successEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            loadingEl.classList.add('hidden');
+
+            if (type === 'success') {
+                successEl.classList.remove('hidden');
+            } else if (type === 'error') {
+                errorEl.textContent = message;
+                errorEl.classList.remove('hidden');
+            } else if (type === 'loading') {
+                loadingEl.classList.remove('hidden');
+            }
+        }
+
+        function submitPost() {
+            const categoryElement = document.getElementById('category');
+            const content = document.getElementById('content').value;
+            const submitButton = document.getElementById('submitButton');
+
+            // Get category value (works for both input and select)
+            const category = categoryElement.value;
+
+            if (!category.trim() || !content.trim()) {
+                showMessage('error', 'Fyll i både kategori och innehåll');
+                return;
+            }
+
+            const newPost = {
+                id: Date.now(),
+                category: category.trim(),
+                content: content.trim(),
+                timestamp: new Date().toISOString(),
+                action: 'add'
+            };
+
+            showMessage('loading');
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50', 'cursor-not-allowed');
+
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = SCRIPT_URL;
+            form.target = 'hidden_iframe';
+            form.style.display = 'none';
+
+            Object.keys(newPost).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = newPost[key];
+                form.appendChild(input);
+            });
+
+            document.body.appendChild(form);
+            form.submit();
+            document.body.removeChild(form);
+
+            setTimeout(() => {
+                // Reset form
+                if (categoryElement.tagName === 'SELECT') {
+                    categoryElement.selectedIndex = 0;
+                } else {
+                    categoryElement.value = '';
+                }
+                document.getElementById('content').value = '';
+                
+                showMessage('success');
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50', 'cursor-not-allowed');
+                
+                setTimeout(() => {
+                    showMessage('');
+                }, 5000);
+            }, 2000);
+        }
+
+        // Allow Ctrl+Enter to submit in textarea
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('content').addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'Enter') {
+                    submitPost();
+                }
+            });
+        });
+
+        // Load settings on page load
+        loadCategorySettings();
+    </script>
+</body>
+</html>
