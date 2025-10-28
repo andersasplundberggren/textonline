@@ -152,7 +152,7 @@
     </div>
 
     <script>
-        // REPLACE THIS WITH YOUR ACTUAL GOOGLE APPS SCRIPT WEB APP URL
+        // Your Google Apps Script Web App URL
         const SHEET_URL = 'https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec';
         
         let settings = {
@@ -164,19 +164,52 @@
         // Load settings and render category input
         async function loadSettings() {
             try {
+                console.log('Fetching settings from:', `${SHEET_URL}?action=getSettings`);
                 const response = await fetch(`${SHEET_URL}?action=getSettings`);
-                settings = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                settings = JSON.parse(text);
+                console.log('Parsed settings:', settings);
+                
                 renderCategoryInput();
             } catch (error) {
                 console.error('Error loading settings:', error);
-                // Default to free text input if settings can't be loaded
-                renderCategoryInput();
+                console.error('Error details:', error.message);
+                
+                // Show error to user
+                const container = document.getElementById('categoryInputContainer');
+                container.innerHTML = `
+                    <div class="p-4 bg-yellow-100 border border-yellow-400 text-yellow-800 rounded-lg">
+                        <p class="font-semibold mb-2">⚠️ Kunde inte ladda inställningar</p>
+                        <p class="text-sm mb-3">Använder standardinställning (fritextfält). Kontrollera att Apps Script är korrekt konfigurerat.</p>
+                        <p class="text-xs">Fel: ${error.message}</p>
+                    </div>
+                    <input
+                        type="text"
+                        id="category"
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent mt-3"
+                        placeholder="t.ex. Feedback, Idé, Fråga..."
+                        required
+                    />
+                `;
             }
         }
 
         function renderCategoryInput() {
             const container = document.getElementById('categoryInputContainer');
-            const allowCustom = settings.allowCustomCategories === 'TRUE' || settings.allowCustomCategories === true;
+            // Handle both string and boolean values, case-insensitive
+            const allowCustomValue = String(settings.allowCustomCategories).toUpperCase();
+            const allowCustom = allowCustomValue === 'TRUE' || allowCustomValue === '1';
+
+            console.log('Settings received:', settings);
+            console.log('allowCustomCategories value:', settings.allowCustomCategories);
+            console.log('Parsed allowCustom:', allowCustom);
 
             if (allowCustom) {
                 // Free text input
