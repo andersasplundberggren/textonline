@@ -656,6 +656,30 @@
             }
         }
 
+        async function toggleHandled(postId) {
+    const post = allPosts.find(p => p.id == postId);
+    const newHandledState = post.handled === 'true' ? 'false' : 'true';
+    
+    const formData = new FormData();
+    formData.append('action', 'handle');
+    formData.append('id', postId);
+    formData.append('handled', newHandledState);
+    
+    try {
+        const response = await fetch(SHEET_URL, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        if (result.success) {
+            fetchPosts();
+        }
+    } catch (error) {
+        console.error('Error handling post:', error);
+    }
+}
+        
         // Delete post
         async function deletePost(id) {
             if (!confirm('Är du säker på att du vill radera detta inlägg?')) return;
