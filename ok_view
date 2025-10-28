@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Innehållstavla - Visa inlägg</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .post-archived {
+            opacity: 0.4;
+            filter: grayscale(70%);
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <iframe name="hidden_iframe" style="display:none;"></iframe>
@@ -50,7 +56,7 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="max-w-6xl mx-auto px-4 py-8">
+    <div class="max-w-7xl mx-auto px-4 py-8">
         
         <!-- Compact Control Bar -->
         <div class="bg-white rounded-lg shadow-lg p-4 mb-6">
@@ -184,7 +190,8 @@
                 <div class="bg-white rounded-lg shadow-lg p-6">
                     <h3 class="text-xl font-bold mb-4">Admin-inställningar</h3>
                     
-                    <div class="space-y-4">
+                    <div class="space-y-6">
+                        <!-- Category Settings -->
                         <div class="border-b pb-4">
                             <h4 class="font-semibold mb-3">Kategori-inställningar</h4>
                             
@@ -207,11 +214,21 @@
                                     type="text"
                                     id="allowedCategories"
                                     placeholder="Feedback, Fråga, Idé, Förslag"
-                                    class="w-full p-3 border border-gray-300 rounded-lg"
+                                    class="w-full p-3 border border-gray-300 rounded-lg mb-2"
+                                    onchange="updateCategoryColorPickers()"
                                 />
                                 <p class="text-sm text-gray-500 mt-1">
                                     Dessa kategorier kommer att visas som alternativ för användare
                                 </p>
+                            </div>
+                        </div>
+
+                        <!-- Category Colors -->
+                        <div class="border-b pb-4">
+                            <h4 class="font-semibold mb-3">Kategorifärger</h4>
+                            <p class="text-sm text-gray-600 mb-3">Välj färg för varje kategori (lämna tom för automatisk färg)</p>
+                            <div id="categoryColorPickers" class="space-y-2">
+                                <!-- Color pickers will be generated here -->
                             </div>
                         </div>
                         
@@ -276,9 +293,9 @@
             Laddar...
         </div>
 
-        <!-- Posts List (Main Focus) -->
-        <div id="postsList" class="space-y-4">
-            <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+        <!-- Posts Grid (Main Focus) -->
+        <div id="postsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="col-span-full bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
                 Laddar inlägg...
             </div>
         </div>
@@ -291,6 +308,36 @@
         let allPosts = [];
         let isAdmin = false;
         let editingId = null;
+        let categoryColors = {};
+
+        function getCategoryColor(category) {
+            // Check if we have a custom color for this category
+            if (categoryColors[category]) {
+                const color = categoryColors[category];
+                return {
+                    border: color,
+                    bg: color + '20',
+                    text: color
+                };
+            }
+            
+            // Generate consistent color from category name (fallback)
+            const normalized = category.toLowerCase();
+            let hash = 0;
+            for (let i = 0; i < normalized.length; i++) {
+                hash = normalized.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            const hue = Math.abs(hash % 360);
+            const saturation = 65 + (hash % 20);
+            const lightness = 50 + (hash % 15);
+            
+            return {
+                border: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                bg: `hsl(${hue}, ${saturation}%, 95%)`,
+                text: `hsl(${hue}, ${saturation}%, 30%)`
+            };
+        }
 
         // Toggle controls panel
         function toggleControls() {
@@ -311,7 +358,10 @@
                 showMessage('loading');
                 const response = await fetch(SCRIPT_URL);
                 const data = await response.json();
-                allPosts = data.filter(post => post.id);
+                allPosts = data.filter(post => post.id).map(post => ({
+                    ...post,
+                    archived: post.archived === 'true' || post.archived === true
+                }));
                 renderPosts();
                 hideMessage('loading');
             } catch (err) {
@@ -412,8 +462,18 @@
                     settings.allowCustomCategories === 'true' || settings.allowCustomCategories === true;
                 document.getElementById('allowedCategories').value = 
                     settings.allowedCategories || '';
+                
+                // Load category colors
+                if (settings.categoryColors) {
+                    try {
+                        categoryColors = JSON.parse(settings.categoryColors);
+                    } catch (e) {
+                        categoryColors = {};
+                    }
+                }
                     
                 updateCategoryInputVisibility();
+                updateCategoryColorPickers();
             } catch (err) {
                 console.error('Error loading settings:', err);
             }
@@ -430,9 +490,62 @@
             }
         }
 
+        function updateCategoryColorPickers() {
+            const categoriesInput = document.getElementById('allowedCategories').value;
+            const categories = categoriesInput ? categoriesInput.split(',').map(c => c.trim()).filter(c => c) : [];
+            const container = document.getElementById('categoryColorPickers');
+            
+            if (categories.length === 0) {
+                container.innerHTML = '<p class="text-sm text-gray-500">Inga kategorier definierade ännu</p>';
+                return;
+            }
+            
+            container.innerHTML = categories.map(cat => {
+                const currentColor = categoryColors[cat] || '';
+                const previewColor = currentColor || getCategoryColor(cat).border;
+                
+                return `
+                    <div class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div class="flex-1">
+                            <label class="font-medium text-sm">${cat}</label>
+                        </div>
+                        <input 
+                            type="color" 
+                            id="color-${cat}" 
+                            value="${currentColor || '#6366f1'}"
+                            class="w-16 h-10 rounded cursor-pointer border-2 border-gray-300"
+                        />
+                        <div class="w-10 h-10 rounded border-2" style="background-color: ${previewColor}; border-color: ${previewColor}"></div>
+                        <button 
+                            onclick="resetCategoryColor('${cat}')"
+                            class="text-xs text-gray-500 hover:text-gray-700 px-2 py-1"
+                        >
+                            Återställ
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function resetCategoryColor(category) {
+            delete categoryColors[category];
+            updateCategoryColorPickers();
+        }
+
         async function saveAdminSettings() {
             const allowCustomCategories = document.getElementById('allowCustomCategories').checked;
             const allowedCategories = document.getElementById('allowedCategories').value;
+            
+            // Collect category colors
+            const categoriesInput = allowedCategories;
+            const categories = categoriesInput ? categoriesInput.split(',').map(c => c.trim()).filter(c => c) : [];
+            
+            categories.forEach(cat => {
+                const colorInput = document.getElementById(`color-${cat}`);
+                if (colorInput && colorInput.value) {
+                    categoryColors[cat] = colorInput.value;
+                }
+            });
 
             try {
                 showMessage('loading');
@@ -455,11 +568,17 @@
                 allowInput.value = allowCustomCategories;
                 form.appendChild(allowInput);
 
-                const categoriesInput = document.createElement('input');
-                categoriesInput.type = 'hidden';
-                categoriesInput.name = 'allowedCategories';
-                categoriesInput.value = allowedCategories;
-                form.appendChild(categoriesInput);
+                const categoriesInputEl = document.createElement('input');
+                categoriesInputEl.type = 'hidden';
+                categoriesInputEl.name = 'allowedCategories';
+                categoriesInputEl.value = allowedCategories;
+                form.appendChild(categoriesInputEl);
+
+                const colorsInput = document.createElement('input');
+                colorsInput.type = 'hidden';
+                colorsInput.name = 'categoryColors';
+                colorsInput.value = JSON.stringify(categoryColors);
+                form.appendChild(colorsInput);
 
                 document.body.appendChild(form);
                 form.submit();
@@ -471,6 +590,9 @@
                     setTimeout(() => {
                         document.getElementById('settingsSuccess').classList.add('hidden');
                     }, 3000);
+                    
+                    // Refresh posts to show new colors
+                    renderPosts();
                 }, 1000);
 
             } catch (err) {
@@ -481,6 +603,52 @@
 
         function cancelAdminSettings() {
             loadAdminSettings();
+        }
+
+        // Toggle archive status
+        async function toggleArchive(id) {
+            const post = allPosts.find(p => p.id == id);
+            const newStatus = !post.archived;
+
+            try {
+                showMessage('loading');
+                
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = SCRIPT_URL;
+                form.target = 'hidden_iframe';
+                form.style.display = 'none';
+
+                const actionInput = document.createElement('input');
+                actionInput.type = 'hidden';
+                actionInput.name = 'action';
+                actionInput.value = 'archive';
+                form.appendChild(actionInput);
+
+                const idInput = document.createElement('input');
+                idInput.type = 'hidden';
+                idInput.name = 'id';
+                idInput.value = id;
+                form.appendChild(idInput);
+
+                const archivedInput = document.createElement('input');
+                archivedInput.type = 'hidden';
+                archivedInput.name = 'archived';
+                archivedInput.value = newStatus;
+                form.appendChild(archivedInput);
+
+                document.body.appendChild(form);
+                form.submit();
+                document.body.removeChild(form);
+
+                setTimeout(() => {
+                    fetchPosts();
+                }, 1500);
+
+            } catch (err) {
+                showMessage('error', 'Kunde inte uppdatera status. Försök igen.');
+                console.error('Error archiving:', err);
+            }
         }
 
         // Delete post
@@ -623,7 +791,7 @@
 
             if (filteredPosts.length === 0) {
                 postsList.innerHTML = `
-                    <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+                    <div class="col-span-full bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
                         Inga inlägg att visa
                     </div>
                 `;
@@ -631,9 +799,12 @@
             }
 
             postsList.innerHTML = filteredPosts.map(post => {
+                const colors = getCategoryColor(post.category);
+                const archivedClass = post.archived ? 'post-archived' : '';
+                
                 if (editingId === post.id) {
                     return `
-                        <div class="bg-white rounded-lg shadow-lg p-6">
+                        <div class="bg-white rounded-lg shadow-lg p-6 border-l-4" style="border-color: ${colors.border}">
                             <div class="space-y-3">
                                 <input
                                     type="text"
@@ -643,13 +814,13 @@
                                 />
                                 <textarea
                                     id="edit-content-${post.id}"
-                                    rows="3"
+                                    rows="4"
                                     class="w-full p-2 border border-gray-300 rounded"
                                 >${post.content}</textarea>
                                 <div class="flex gap-2">
                                     <button
                                         onclick="saveEdit(${post.id})"
-                                        class="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                                        class="flex items-center gap-1 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <polyline points="20 6 9 17 4 12"></polyline>
@@ -658,7 +829,7 @@
                                     </button>
                                     <button
                                         onclick="cancelEdit()"
-                                        class="flex items-center gap-1 px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400"
+                                        class="flex items-center gap-1 px-3 py-1 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 text-sm"
                                     >
                                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -673,13 +844,31 @@
                 }
 
                 return `
-                    <div class="bg-white rounded-lg shadow-lg p-6">
-                        <div class="flex justify-between items-start mb-2">
-                            <span class="inline-block px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-medium">
+                    <div class="bg-white rounded-lg shadow-lg p-6 border-l-4 ${archivedClass} transition-all duration-300" style="border-color: ${colors.border}">
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="inline-block px-3 py-1 rounded-full text-sm font-medium" style="background-color: ${colors.bg}; color: ${colors.text}">
                                 ${post.category}
                             </span>
                             ${isAdmin ? `
                                 <div class="flex gap-2">
+                                    <button
+                                        onclick="toggleArchive(${post.id})"
+                                        class="text-gray-600 hover:text-gray-800"
+                                        title="${post.archived ? 'Aktivera inlägg' : 'Arkivera inlägg'}"
+                                    >
+                                        ${post.archived ? `
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <polyline points="12 6 12 12 16 14"></polyline>
+                                            </svg>
+                                        ` : `
+                                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <polyline points="21 8 21 21 3 21 3 8"></polyline>
+                                                <rect x="1" y="3" width="22" height="5"></rect>
+                                                <line x1="10" y1="12" x2="14" y2="12"></line>
+                                            </svg>
+                                        `}
+                                    </button>
                                     <button
                                         onclick="startEdit(${post.id})"
                                         class="text-blue-600 hover:text-blue-800"
@@ -702,10 +891,13 @@
                                 </div>
                             ` : ''}
                         </div>
-                        <p class="text-gray-700 mb-2">${post.content}</p>
-                        <span class="text-xs text-gray-500">
-                            ${new Date(post.timestamp).toLocaleString('sv-SE')}
-                        </span>
+                        <p class="text-gray-700 mb-3 break-words">${post.content}</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">
+                                ${new Date(post.timestamp).toLocaleString('sv-SE')}
+                            </span>
+                            ${post.archived ? '<span class="text-xs font-medium text-gray-500">Arkiverad</span>' : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -734,7 +926,7 @@
             const printWindow = window.open('', '', 'width=800,height=600');
             const filteredPosts = getFilteredPosts();
             
-            const htmlContent = '<html><head><title>Innehållstavla Export</title><style>body { font-family: Arial, sans-serif; padding: 20px; } h1 { color: #333; } .post { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; } .category { font-weight: bold; color: #4F46E5; } .timestamp { color: #666; font-size: 12px; } .content { margin-top: 8px; }</style></head><body><h1>Innehållstavla - Export</h1><p>Exporterad: ' + new Date().toLocaleString('sv-SE') + '</p><p>Antal inlägg: ' + filteredPosts.length + '</p><hr>' + filteredPosts.map(post => '<div class="post"><div class="category">' + post.category + '</div><div class="timestamp">' + new Date(post.timestamp).toLocaleString('sv-SE') + '</div><div class="content">' + post.content + '</div></div>').join('') + '</body></html>';
+            const htmlContent = '<html><head><title>Innehållstavla Export</title><style>body { font-family: Arial, sans-serif; padding: 20px; } h1 { color: #333; } .post { margin-bottom: 20px; border-bottom: 1px solid #ddd; padding-bottom: 15px; } .category { font-weight: bold; color: #4F46E5; } .timestamp { color: #666; font-size: 12px; } .content { margin-top: 8px; }</style></head><body><h1>Innehållstavla - Export</h1><p>Exporterad: ' + new Date().toLocaleString('sv-SE') + '</p><p>Antal inlägg: ' + filteredPosts.length + '</p><hr>' + filteredPosts.map(post => '<div class="post"><div class="category">' + post.category + (post.archived ? ' (Arkiverad)' : '') + '</div><div class="timestamp">' + new Date(post.timestamp).toLocaleString('sv-SE') + '</div><div class="content">' + post.content + '</div></div>').join('') + '</body></html>';
             
             printWindow.document.write(htmlContent);
             printWindow.document.close();
@@ -758,8 +950,6 @@
 
         // Initial load
         fetchPosts();
-        
-        // Auto-refresh disabled - users can manually refresh using the button
     </script>
 </body>
 </html>
