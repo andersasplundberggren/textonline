@@ -9,8 +9,14 @@
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <!-- Header -->
     <div class="bg-white shadow-lg">
-        <div class="max-w-6xl mx-auto px-4 py-6">
-            <h1 class="text-3xl font-bold text-gray-800 text-center">Innehållstavla</h1>
+        <div class="max-w-6xl mx-auto px-4 py-6 flex justify-between items-center">
+            <h1 class="text-3xl font-bold text-gray-800">Innehållstavla</h1>
+            <a href="admin.html" class="text-gray-500 hover:text-gray-700 transition" title="Admin">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 1v6m0 6v6m5.2-13.2L14 9m-4 6-3.2 3.2M23 12h-6m-6 0H1m18.2 5.2L14 14m-4-4-3.2-3.2"></path>
+                </svg>
+            </a>
         </div>
     </div>
 
@@ -102,6 +108,25 @@
                     <p class="text-gray-600">
                         Alla inlägg är anonyma. Vi sparar ingen personlig information om vem som skriver vad.
                     </p>
+                </div>
+            </div>
+
+            <!-- Admin Info Box -->
+            <div class="mt-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div class="flex items-start gap-3">
+                    <svg width="24" height="24" class="text-purple-600 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m5.2-13.2L14 9m-4 6-3.2 3.2M23 12h-6m-6 0H1m18.2 5.2L14 14m-4-4-3.2-3.2"></path>
+                    </svg>
+                    <div class="flex-1">
+                        <h3 class="font-semibold text-purple-900 mb-1">Administrera tjänsten</h3>
+                        <p class="text-sm text-purple-800 mb-2">
+                            Har du administratörsbehörighet? Hantera kategorier och inställningar.
+                        </p>
+                        <a href="admin.html" class="text-sm font-medium text-purple-600 hover:text-purple-800 underline">
+                            Gå till admin-panelen →
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
