@@ -179,10 +179,10 @@
                             ${categories.map(cat => `<option value="${cat}">${cat}</option>`).join('')}
                         </select>
                     `;
-                    document.getElementById('categoryHint').textContent = 'Välj en kategori från listan';
+                    document.getElementById('categoryHint').textContent = 'Välj en kategori från listan eller klicka på en kategori nedan';
                     
                     // Show preview badges for all categories
-                    showCategoryPreview(categories);
+                    showCategoryPreview(categories, false);
                 } else if (!allowCustom && categories.length === 0) {
                     // No categories defined by admin
                     container.innerHTML = `
@@ -207,11 +207,11 @@
                             class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-lg"
                         />
                     `;
-                    document.getElementById('categoryHint').textContent = 'Skriv din egen kategori';
+                    document.getElementById('categoryHint').textContent = 'Skriv din egen kategori eller klicka på ett förslag nedan';
                     
                     // Show preview for predefined categories if any exist
                     if (categories.length > 0) {
-                        showCategoryPreview(categories);
+                        showCategoryPreview(categories, true);
                     }
                 }
                 
@@ -231,23 +231,37 @@
             }
         }
 
-        function showCategoryPreview(categories) {
+        function showCategoryPreview(categories, isTextInput = false) {
             const previewContainer = document.getElementById('categoryPreview');
             if (categories.length === 0) {
                 previewContainer.innerHTML = '';
                 return;
             }
             
-            previewContainer.innerHTML = '<div class="text-xs text-gray-500 w-full mb-1">Tillgängliga kategorier:</div>' + 
+            previewContainer.innerHTML = '<div class="text-xs text-gray-500 w-full mb-1">Tillgängliga kategorier (klicka för att välja):</div>' + 
                 categories.map(cat => {
                     const colors = getCategoryColor(cat);
                     return `
-                        <span class="inline-block px-3 py-1 rounded-full text-sm font-medium" 
+                        <span onclick="selectCategory('${cat.replace(/'/g, "\\'")}', ${isTextInput})" 
+                              class="inline-block px-3 py-1 rounded-full text-sm font-medium cursor-pointer hover:opacity-80 transition-opacity" 
                               style="background-color: ${colors.bg}; color: ${colors.text}; border: 1px solid ${colors.border}">
                             ${cat}
                         </span>
                     `;
                 }).join('');
+        }
+
+        function selectCategory(categoryName, isTextInput) {
+            const categoryElement = document.getElementById('category');
+            
+            if (isTextInput) {
+                // For text input, set the value directly
+                categoryElement.value = categoryName;
+            } else {
+                // For dropdown, select the option
+                categoryElement.value = categoryName;
+                updateCategoryPreview();
+            }
         }
 
         function updateCategoryPreview() {
