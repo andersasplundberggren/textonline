@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnostik - Apps Script Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-xl p-8 mb-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">🔍 Apps Script Diagnostik</h1>
+            <p class="text-gray-600 mb-6">
+                Detta verktyg hjälper dig att testa din Google Apps Script-anslutning.
+            </p>
+
+            <!-- URL Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Google Apps Script URL
+                </label>
+                <input
+                    type="text"
+                    id="scriptUrl"
+                    value="https://script.google.com/macros/s/AKfycbxtNgzE48LgUcvRNWwyeUh484h984yjz1jiqndoHZAkmcdQEngEjUcyPmRTVkhpq2w/exec"
+                    class="w-full p-3 border border-gray-300 rounded-lg font-mono text-sm"
+                />
+            </div>
+
+            <!-- Test Buttons -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <button
+                    onclick="testGetSettings()"
+                    class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                >
+                    Test getSettings
+                </button>
+                <button
+                    onclick="testGetPosts()"
+                    class="px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                    Test getPosts
+                </button>
+                <button
+                    onclick="testAddPost()"
+                    class="px-4 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                >
+                    Test addPost
+                </button>
+            </div>
+
+            <!-- Results -->
+            <div id="results" class="space-y-4">
+                <!-- Results will be shown here -->
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 class="font-bold text-blue-900 mb-3">📋 Instruktioner</h2>
+            <ol class="list-decimal list-inside space-y-2 text-blue-800 text-sm">
+                <li>Kontrollera att din Apps Script URL är korrekt ovan</li>
+                <li>Klicka på "Test getSettings" för att hämta inställningar</li>
+                <li>Om du får JSON-data = <strong>Fungerar!</strong></li>
+                <li>Om du får fel = Följ felsökningsstegen nedan</li>
+            </ol>
+        </div>
+
+        <!-- Troubleshooting -->
+        <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
+            <h2 class="font-bold text-yellow-900 mb-3">⚠️ Vanliga problem</h2>
+            <div class="space-y-3 text-sm text-yellow-800">
+                <div>
+                    <strong>404 Error:</strong> Apps Script är inte korrekt publicerat
+                    <ul class="list-disc list-inside ml-4 mt-1">
+                        <li>Gå till Deploy → Manage deployments</li>
+                        <li>Kontrollera att "Who has access" är satt till "Anyone"</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>"Unexpected token &lt;":</strong> Får HTML istället för JSON
+                    <ul class="list-disc list-inside ml-4 mt-1">
+                        <li>Apps Script kräver inloggning (fel inställning)</li>
+                        <li>Kontrollera "Who has access" = Anyone</li>
+                    </ul>
+                </div>
+                <div>
+                    <strong>CORS Error:</strong> Blockerat av webbläsaren
+                    <ul class="list-disc list-inside ml-4 mt-1">
+                        <li>Apps Script måste vara korrekt publicerat</li>
+                        <li>Testa URL:en direkt i en ny flik först</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function addResult(title, success, data, error = null) {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString('sv-SE');
+            
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `p-4 rounded-lg border-2 ${success ? 'bg-green-50 border-green-500' : 'bg-red-50 border-red-500'}`;
+            
+            let content = `
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-2xl">${success ? '✅' : '❌'}</span>
+                    <div>
+                        <strong class="${success ? 'text-green-900' : 'text-red-900'}">${title}</strong>
+                        <span class="text-xs text-gray-500 ml-2">${timestamp}</span>
+                    </div>
+                </div>
+            `;
+            
+            if (success) {
+                content += `
+                    <div class="mt-3">
+                        <p class="text-sm font-semibold text-green-900 mb-1">Resultat:</p>
+                        <pre class="bg-green-100 p-3 rounded text-xs overflow-x-auto">${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } else {
+                content += `
+                    <div class="mt-3">
+                        <p class="text-sm font-semibold text-red-900 mb-1">Fel:</p>
+                        <pre class="bg-red-100 p-3 rounded text-xs overflow-x-auto">${error || 'Okänt fel'}</pre>
+                    </div>
+                `;
+            }
+            
+            resultDiv.innerHTML = content;
+            results.insertBefore(resultDiv, results.firstChild);
+        }
+
+        async function testGetSettings() {
+            const url = document.getElementById('scriptUrl').value;
+            addResult('Testing getSettings...', true, { status: 'Kör test...' });
+            
+            try {
+                console.log('Fetching:', `${url}?action=getSettings`);
+                const response = await fetch(`${url}?action=getSettings`);
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const data = JSON.parse(text);
+                console.log('Parsed data:', data);
+                
+                addResult('✅ getSettings - FUNGERAR!', true, data);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addResult('❌ getSettings - MISSLYCKADES', false, null, error.message);
+            }
+        }
+
+        async function testGetPosts() {
+            const url = document.getElementById('scriptUrl').value;
+            addResult('Testing getPosts...', true, { status: 'Kör test...' });
+            
+            try {
+                console.log('Fetching:', url);
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                const data = JSON.parse(text);
+                
+                addResult('✅ getPosts - FUNGERAR!', true, { 
+                    antal_inlägg: Array.isArray(data) ? data.length : 0,
+                    data: data 
+                });
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addResult('❌ getPosts - MISSLYCKADES', false, null, error.message);
+            }
+        }
+
+        async function testAddPost() {
+            const url = document.getElementById('scriptUrl').value;
+            addResult('Testing addPost...', true, { status: 'Kör test...' });
+            
+            try {
+                const formData = new FormData();
+                formData.append('action', 'add');
+                formData.append('id', Date.now());
+                formData.append('category', 'Test');
+                formData.append('content', 'Detta är ett test-inlägg från diagnostikverktyget');
+                formData.append('timestamp', new Date().toISOString());
+                
+                console.log('Posting to:', url);
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const text = await response.text();
+                const data = JSON.parse(text);
+                
+                if (data.success) {
+                    addResult('✅ addPost - FUNGERAR!', true, data);
+                } else {
+                    throw new Error(data.error || 'Okänt fel från servern');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                addResult('❌ addPost - MISSLYCKADES', false, null, error.message);
+            }
+        }
+
+        // Auto-run getSettings on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                console.log('Running automatic test...');
+                testGetSettings();
+            }, 500);
+        });
+    </script>
+</body>
+</html>
