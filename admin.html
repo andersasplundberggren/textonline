@@ -198,12 +198,28 @@
 
         async function loadSettings() {
             try {
+                console.log('Fetching settings from:', `${SHEET_URL}?action=getSettings`);
                 const response = await fetch(`${SHEET_URL}?action=getSettings`);
-                const settings = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                const settings = JSON.parse(text);
+                console.log('Parsed settings:', settings);
+                
                 currentSettings = settings;
 
-                // Parse settings
-                const allowCustom = settings.allowCustomCategories === 'TRUE' || settings.allowCustomCategories === true;
+                // Parse settings - handle both string and boolean
+                const allowCustomValue = String(settings.allowCustomCategories).toUpperCase();
+                const allowCustom = allowCustomValue === 'TRUE' || allowCustomValue === '1';
+                
+                console.log('allowCustomCategories:', settings.allowCustomCategories);
+                console.log('Parsed to boolean:', allowCustom);
+                
                 document.getElementById('allowCustomCategories').checked = allowCustom;
 
                 // Parse categories and colors
@@ -215,6 +231,7 @@
                     try {
                         categoryColors = JSON.parse(settings.categoryColors);
                     } catch (e) {
+                        console.error('Error parsing categoryColors:', e);
                         categoryColors = {};
                     }
                 }
@@ -224,7 +241,8 @@
                 updatePreview();
             } catch (error) {
                 console.error('Error loading settings:', error);
-                alert('Kunde inte ladda inställningar. Kontrollera att SHEET_URL är korrekt.');
+                console.error('Error details:', error.message);
+                alert('Kunde inte ladda inställningar. Kontrollera att SHEET_URL är korrekt och att Apps Script är publicerat.\n\nFel: ' + error.message);
             }
         }
 
