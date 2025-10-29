@@ -671,7 +671,7 @@
     formData.append('handled', newHandledState);
     
     try {
-        const response = await fetch(SHEET_URL, {
+        const response = await fetch(SCRIPT_URL, {
             method: 'POST',
             body: formData
         });
