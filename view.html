@@ -693,7 +693,10 @@
 
         async function toggleHandled(postId) {
     const post = allPosts.find(p => p.id == postId);
+    console.log('Found post:', post);
+    console.log('Current handled state:', post.handled);
     const newHandledState = post.handled === 'true' ? 'false' : 'true';
+    console.log('New handled state:', newHandledState);
     
     const formData = new FormData();
     formData.append('action', 'handle');
@@ -708,6 +711,7 @@
         
         const result = await response.json();
         if (result.success) {
+            console.log('Successfully updated! Fetching posts...');
             fetchPosts();
         }
     } catch (error) {
