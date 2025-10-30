@@ -30,27 +30,48 @@
         box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         z-index: 10;
     }
-    .post-handled {
-        opacity: 0.6;
-        filter: grayscale(50%);
-        background-color: #f3f4f6 !important;
+
+    /* Optimerad Masonry layout för inlägg */
+    #postsList {
+        column-gap: 1.5rem;
+        column-fill: balance;
     }
-    .handled-ribbon {
-        position: absolute;
-        top: 10px;
-        right: -35px;
-        width: 150px;
-        padding: 5px 0;
-        background-color: #10b981;
-        color: white;
-        text-align: center;
-        font-size: 12px;
-        font-weight: bold;
-        transform: rotate(45deg);
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        z-index: 10;
+    
+    #postsList > div {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        -webkit-column-break-inside: avoid;
+        margin-bottom: 1.5rem;
+        display: inline-block;
+        width: 100%;
+        box-sizing: border-box;
     }
-</style>
+    
+    /* Säkerställ att korten får rätt höjd baserat på innehåll */
+    #postsList .bg-white {
+        height: auto;
+        min-height: auto;
+    }
+    
+    /* Responsiv kolumnhantering */
+    @media (max-width: 768px) {
+        #postsList {
+            column-count: 1 !important;
+        }
+    }
+    
+    @media (min-width: 769px) and (max-width: 1024px) {
+        #postsList {
+            column-count: 2 !important;
+        }
+    }
+    
+    @media (min-width: 1025px) {
+        #postsList {
+            column-count: 3 !important;
+        }
+    }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
     <iframe name="hidden_iframe" style="display:none;"></iframe>
@@ -199,7 +220,7 @@
             <div class="bg-white rounded-lg shadow-lg p-6">
                 <h3 class="font-semibold mb-4 text-gray-800">Åtgärder</h3>
                 <div class="flex flex-wrap gap-3">
-<button
+                    <button
                         onclick="exportToPDF()"
                         class="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
@@ -333,14 +354,9 @@
             Laddar...
         </div>
 
-        <!-- Posts Grid (Main Focus) -->
-        <div id="postsList" class="gap-4" style="column-count: 1; column-gap: 1rem;">
-    <style>
-        @media (min-width: 768px) { #postsList { column-count: 2; } }
-        @media (min-width: 1024px) { #postsList { column-count: 3; } }
-        #postsList > div { break-inside: avoid; margin-bottom: 1rem; }
-    </style>
-            <div class="col-span-full bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+        <!-- Posts Grid (Main Focus) - Nu med optimerad masonry-layout -->
+        <div id="postsList" class="columns-1 md:columns-2 lg:columns-3 gap-4">
+            <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
                 Laddar inlägg...
             </div>
         </div>
@@ -697,32 +713,32 @@
         }
 
         async function toggleHandled(postId) {
-    const post = allPosts.find(p => p.id == postId);
-    console.log('Found post:', post);
-    console.log('Current handled state:', post.handled);
-    const newHandledState = (post.handled === 'true' || post.handled === true) ? 'false' : 'true';
-    console.log('New handled state:', newHandledState);
-    
-    const formData = new FormData();
-    formData.append('action', 'handle');
-    formData.append('id', postId);
-    formData.append('handled', newHandledState);
-    
-    try {
-        const response = await fetch(SCRIPT_URL, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        if (result.success) {
-            console.log('Successfully updated! Fetching posts...');
-            fetchPosts();
+            const post = allPosts.find(p => p.id == postId);
+            console.log('Found post:', post);
+            console.log('Current handled state:', post.handled);
+            const newHandledState = (post.handled === 'true' || post.handled === true) ? 'false' : 'true';
+            console.log('New handled state:', newHandledState);
+            
+            const formData = new FormData();
+            formData.append('action', 'handle');
+            formData.append('id', postId);
+            formData.append('handled', newHandledState);
+            
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    console.log('Successfully updated! Fetching posts...');
+                    fetchPosts();
+                }
+            } catch (error) {
+                console.error('Error handling post:', error);
+            }
         }
-    } catch (error) {
-        console.error('Error handling post:', error);
-    }
-}
         
         // Delete post
         async function deletePost(id) {
@@ -864,7 +880,7 @@
 
             if (filteredPosts.length === 0) {
                 postsList.innerHTML = `
-                    <div class="col-span-full bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
+                    <div class="bg-white rounded-lg shadow-lg p-8 text-center text-gray-500">
                         Inga inlägg att visa
                     </div>
                 `;
